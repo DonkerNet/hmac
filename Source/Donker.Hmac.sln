@@ -1,0 +1,66 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Donker.Hmac", "Donker.Hmac\Donker.Hmac.csproj", "{1A0FFF03-A0F5-47BD-B7BC-837E731D7640}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Donker.Hmac.Configuration", "Donker.Hmac.Configuration\Donker.Hmac.Configuration.csproj", "{D343659D-AF03-4CCB-A474-8B23EACC2178}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Donker.Hmac.RestSharp", "Donker.Hmac.RestSharp\Donker.Hmac.RestSharp.csproj", "{A77C32A6-CB4B-4BBA-B37E-07EED0AF5DAC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{68374956-3202-420B-ACFB-3105B6B79478}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{42A2A591-E3FB-41BB-9FA8-D34903481D18}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Donker.Hmac.Test", "Test\Donker.Hmac.Test\Donker.Hmac.Test.csproj", "{477CB79E-753C-4631-984A-40E986B29B80}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Donker.Hmac.RestSharp.Test", "Test\Donker.Hmac.RestSharp.Test\Donker.Hmac.RestSharp.Test.csproj", "{DA094DCB-0D76-41FD-A07D-A8269841F503}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Donker.Hmac.Configuration.Test", "Test\Donker.Hmac.Configuration.Test\Donker.Hmac.Configuration.Test.csproj", "{81429DE5-ADA7-429D-A213-57660A32581E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1A0FFF03-A0F5-47BD-B7BC-837E731D7640}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A0FFF03-A0F5-47BD-B7BC-837E731D7640}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A0FFF03-A0F5-47BD-B7BC-837E731D7640}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A0FFF03-A0F5-47BD-B7BC-837E731D7640}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D343659D-AF03-4CCB-A474-8B23EACC2178}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D343659D-AF03-4CCB-A474-8B23EACC2178}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D343659D-AF03-4CCB-A474-8B23EACC2178}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D343659D-AF03-4CCB-A474-8B23EACC2178}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A77C32A6-CB4B-4BBA-B37E-07EED0AF5DAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A77C32A6-CB4B-4BBA-B37E-07EED0AF5DAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A77C32A6-CB4B-4BBA-B37E-07EED0AF5DAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A77C32A6-CB4B-4BBA-B37E-07EED0AF5DAC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{477CB79E-753C-4631-984A-40E986B29B80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{477CB79E-753C-4631-984A-40E986B29B80}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{477CB79E-753C-4631-984A-40E986B29B80}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{477CB79E-753C-4631-984A-40E986B29B80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA094DCB-0D76-41FD-A07D-A8269841F503}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA094DCB-0D76-41FD-A07D-A8269841F503}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA094DCB-0D76-41FD-A07D-A8269841F503}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA094DCB-0D76-41FD-A07D-A8269841F503}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81429DE5-ADA7-429D-A213-57660A32581E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81429DE5-ADA7-429D-A213-57660A32581E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81429DE5-ADA7-429D-A213-57660A32581E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81429DE5-ADA7-429D-A213-57660A32581E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{477CB79E-753C-4631-984A-40E986B29B80} = {42A2A591-E3FB-41BB-9FA8-D34903481D18}
+		{DA094DCB-0D76-41FD-A07D-A8269841F503} = {42A2A591-E3FB-41BB-9FA8-D34903481D18}
+		{81429DE5-ADA7-429D-A213-57660A32581E} = {42A2A591-E3FB-41BB-9FA8-D34903481D18}
+	EndGlobalSection
+EndGlobal
