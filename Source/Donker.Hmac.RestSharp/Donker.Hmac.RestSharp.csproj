@@ -32,7 +32,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <LangVersion>5</LangVersion>
+    <LangVersion>default</LangVersion>
     <DocumentationFile>..\..\Build\Donker.Hmac.RestSharp\Donker.Hmac.RestSharp.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
