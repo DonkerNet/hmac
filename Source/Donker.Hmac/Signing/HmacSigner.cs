@@ -111,11 +111,11 @@ namespace Donker.Hmac.Signing
                 HmacConfiguration.SignatureDataSeparator ?? string.Empty,
                 signatureData.HttpMethod?.Trim().ToUpperInvariant(),
                 signatureData.ContentMd5?.Trim(),
-                signatureData.ContentType.Trim().ToLowerInvariant(),
-                signatureData.Date.Trim(),
+                signatureData.ContentType?.Trim().ToLowerInvariant(),
+                signatureData.Date?.Trim(),
                 signatureData.Username,
                 headerString,
-                signatureData.RequestUri.Trim());
+                signatureData.RequestUri?.Trim());
 
             byte[] keyBytes = HmacConfiguration.SignatureEncoding.GetBytes(signatureData.Key);
             byte[] representationBytes = HmacConfiguration.SignatureEncoding.GetBytes(representation);

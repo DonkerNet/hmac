@@ -159,12 +159,17 @@ namespace Donker.Hmac.Validation
         /// <param name="contentMd5">The Content-MD5 string to compare the body hash to.</param>
         /// <param name="bodyContent">The body to hash and compare.</param>
         /// <returns><c>true</c> if equal; otherwise, <c>false</c>.</returns>
+        /// <exception cref="ArgumentException">The body content stream does not support seeking.</exception>
         public bool IsValidContentMd5(string contentMd5, Stream bodyContent)
         {
-            if (string.IsNullOrEmpty(contentMd5))
-                return bodyContent == null;
             if (bodyContent == null)
-                return false;
+                return string.IsNullOrEmpty(contentMd5);
+
+            if (!bodyContent.CanSeek)
+                throw new ArgumentException("The body content stream does not support seeking.", nameof(bodyContent));
+
+            if (string.IsNullOrEmpty(contentMd5))
+                return bodyContent.Length == 0;
 
             string newContentMd5 = HmacSigner.CreateBase64Md5Hash(bodyContent);
             return contentMd5 == newContentMd5;
@@ -176,12 +181,10 @@ namespace Donker.Hmac.Validation
         /// <param name="contentMd5">The Content-MD5 hash byte array to compare the body hash to.</param>
         /// <param name="bodyContent">The body to hash and compare.</param>
         /// <returns><c>true</c> if equal; otherwise, <c>false</c>.</returns>
+        /// <exception cref="ArgumentException">The body content stream does not support seeking.</exception>
         public bool IsValidContentMd5(byte[] contentMd5, Stream bodyContent)
         {
-            if (contentMd5.IsNullOrEmpty())
-                return bodyContent == null;
-            
-            string contentMd5String = Convert.ToBase64String(contentMd5);
+            string contentMd5String = contentMd5.IsNullOrEmpty() ? null : Convert.ToBase64String(contentMd5);
             return IsValidContentMd5(contentMd5String, bodyContent);
         }
 
