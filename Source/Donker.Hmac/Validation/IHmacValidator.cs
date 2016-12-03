@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net.Http;
+using System.Text;
 using System.Web;
 
 namespace Donker.Hmac.Validation
@@ -74,15 +75,17 @@ namespace Donker.Hmac.Validation
         /// </summary>
         /// <param name="contentMd5">The Content-MD5 string to compare the body hash to.</param>
         /// <param name="bodyContent">The body to hash to compare.</param>
+        /// <param name="encoding">The encoding to use when converting the body content into bytes.</param>
         /// <returns><c>true</c> if equal; otherwise, <c>false</c>.</returns>
-        bool IsValidContentMd5(string contentMd5, string bodyContent);
+        bool IsValidContentMd5(string contentMd5, string bodyContent, Encoding encoding);
         /// <summary>
         /// MD5 hashes the specified body and compares it with the Content-MD5 hash byte array.
         /// </summary>
         /// <param name="contentMd5">The Content-MD5 hash byte array to compare the body hash to.</param>
         /// <param name="bodyContent">The body to hash to compare.</param>
+        /// <param name="encoding">The encoding to use when converting the body content into bytes.</param>
         /// <returns><c>true</c> if equal; otherwise, <c>false</c>.</returns>
-        bool IsValidContentMd5(byte[] contentMd5, string bodyContent);
+        bool IsValidContentMd5(byte[] contentMd5, string bodyContent, Encoding encoding);
         /// <summary>
         /// Compares two signatures in their string representation.
         /// </summary>

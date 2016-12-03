@@ -26,21 +26,25 @@ namespace Donker.Hmac.Configuration
         /// </summary>
         string SignatureDataSeparator { get; set; }
         /// <summary>
-        /// Gets or sets the encoding to use when working with string values.
+        /// Gets or sets the encoding to use when converting string values to bytes during the signing process.
         /// </summary>
-        Encoding CharacterEncoding { get; set; }
+        Encoding SignatureEncoding { get; set; }
         /// <summary>
         /// Gets or sets the name of the HMAC algorithm to use for signing.
         /// </summary>
         string HmacAlgorithm { get; set; }
         /// <summary>
-        /// Gets or sets the maximum allowed age of a request, compared to the current system time.
+        /// Gets or sets the maximum allowed age of a request, compared to the current system time. Recommended.
         /// </summary>
-        TimeSpan MaxRequestAge { get; set; }
+        TimeSpan? MaxRequestAge { get; set; }
         /// <summary>
         /// Gets or sets if the request URI should be included with signing. Recommended.
         /// </summary>
         bool SignRequestUri { get; set; }
+        /// <summary>
+        /// Gets or sets if the body of the request should be validated against the Content-MD5 header. Recommended.
+        /// </summary>
+        bool ValidateContentMd5 { get; set; }
         /// <summary>
         /// Gets or sets the names of entire headers (both name and values) to canonicalize and include in the signature.
         /// </summary>

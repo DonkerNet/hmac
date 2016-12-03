@@ -1,6 +1,7 @@
 ﻿using System.Collections.Specialized;
 using System.IO;
 using System.Net.Http;
+using System.Text;
 using System.Web;
 
 namespace Donker.Hmac.Signing
@@ -44,8 +45,9 @@ namespace Donker.Hmac.Signing
         /// Computes an MD5 hash from a string.
         /// </summary>
         /// <param name="content">The content to hash.</param>
+        /// <param name="encoding">The encoding used for converting the content to bytes.</param>
         /// <returns>The hash as a <see cref="byte"/> array.</returns>
-        byte[] CreateMd5Hash(string content);
+        byte[] CreateMd5Hash(string content, Encoding encoding);
         /// <summary>
         /// Computes an MD5 hash from a stream and returns it as a base64 converted string.
         /// </summary>
@@ -62,8 +64,9 @@ namespace Donker.Hmac.Signing
         /// Computes an MD5 hash from a string and returns it as a base64 converted string.
         /// </summary>
         /// <param name="content">The content to hash.</param>
+        /// <param name="encoding">The encoding used for converting the content to bytes.</param>
         /// <returns>The hash as a base64 <see cref="string"/>.</returns>
-        string CreateBase64Md5Hash(string content);
+        string CreateBase64Md5Hash(string content, Encoding encoding);
         /// <summary>
         /// Creates a string from a header <see cref="NameValueCollection"/> where the headers are canonicalized.
         /// </summary>

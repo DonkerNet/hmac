@@ -345,8 +345,8 @@ namespace Donker.Hmac.Test
             HmacValidator validator = new HmacValidator(configuration, signer);
 
             // Act
-            bool stringIsValidBase64 = validator.IsValidContentMd5(_base64Md5Hash, Body);
-            bool stringIsValidByteArray = validator.IsValidContentMd5(_md5Hash, Body);
+            bool stringIsValidBase64 = validator.IsValidContentMd5(_base64Md5Hash, Body, Encoding.UTF8);
+            bool stringIsValidByteArray = validator.IsValidContentMd5(_md5Hash, Body, Encoding.UTF8);
             bool bytesAreValidBase64 = validator.IsValidContentMd5(_base64Md5Hash, _bodyBytes);
             bool bytesAreValidByteArray = validator.IsValidContentMd5(_md5Hash, _bodyBytes);
             bool streamIsValidBase64 = validator.IsValidContentMd5(_base64Md5Hash, _bodyStream);
@@ -374,8 +374,8 @@ namespace Donker.Hmac.Test
             Stream incorrectBodyStream = new MemoryStream(incorrectBodyBytes);
 
             // Act
-            bool stringIsValidBase64 = validator.IsValidContentMd5(_base64Md5Hash, incorrectBody);
-            bool stringIsValidByteArray = validator.IsValidContentMd5(_md5Hash, incorrectBody);
+            bool stringIsValidBase64 = validator.IsValidContentMd5(_base64Md5Hash, incorrectBody, Encoding.UTF8);
+            bool stringIsValidByteArray = validator.IsValidContentMd5(_md5Hash, incorrectBody, Encoding.UTF8);
             bool bytesAreValidBase64 = validator.IsValidContentMd5(_base64Md5Hash, incorrectBodyBytes);
             bool bytesAreValidByteArray = validator.IsValidContentMd5(_md5Hash, incorrectBodyBytes);
             bool streamIsValidBase64 = validator.IsValidContentMd5(_base64Md5Hash, incorrectBodyStream);
@@ -440,10 +440,11 @@ namespace Donker.Hmac.Test
                 UserHeaderName = "X-Auth-User",
                 AuthorizationScheme = "HMAC",
                 SignatureDataSeparator = "\n",
-                CharacterEncoding = Encoding.UTF8,
+                SignatureEncoding = Encoding.UTF8,
                 HmacAlgorithm = "HMACSHA512",
                 MaxRequestAge = TimeSpan.FromMinutes(5),
                 SignRequestUri = true,
+                ValidateContentMd5 = true,
                 Headers = new List<string> { "X-Custom-Test-Header-1", "X-Custom-Test-Header-2" }
             };
         }

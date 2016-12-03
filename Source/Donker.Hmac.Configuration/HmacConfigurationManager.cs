@@ -37,10 +37,11 @@ namespace Donker.Hmac.Configuration
             configuration.UserHeaderName = "X-Auth-User";
             configuration.AuthorizationScheme = "HMAC";
             configuration.SignatureDataSeparator = "\n";
-            configuration.CharacterEncoding = Encoding.UTF8;
+            configuration.SignatureEncoding = Encoding.UTF8;
             configuration.HmacAlgorithm = "HMACSHA512";
             configuration.MaxRequestAge = TimeSpan.FromMinutes(5);
             configuration.SignRequestUri = true;
+            configuration.ValidateContentMd5 = true;
             configuration.Headers = null;
         }
 
@@ -154,14 +155,14 @@ namespace Donker.Hmac.Configuration
                                         return null;
                                     }
                                     break;
-                                case "characterEncoding":
+                                case "signatureEncoding":
                                     try
                                     {
-                                        configuration.CharacterEncoding = Encoding.GetEncoding(value);
+                                        configuration.SignatureEncoding = Encoding.GetEncoding(value);
                                     }
                                     catch (Exception ex)
                                     {
-                                        OnConfigurationError("Configuration attribute 'characterEncoding' does not have a valid name.", ex);
+                                        OnConfigurationError("Configuration attribute 'signatureEncoding' does not have a valid name.", ex);
                                         return null;
                                     }
                                     break;
@@ -188,6 +189,17 @@ namespace Donker.Hmac.Configuration
                                     catch (Exception ex)
                                     {
                                         OnConfigurationError("Configuration attribute 'signRequestUri' does not have a valid boolean value.", ex);
+                                        return null;
+                                    }
+                                    break;
+                                case "validateContentMd5":
+                                    try
+                                    {
+                                        configuration.ValidateContentMd5 = bool.Parse(value);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        OnConfigurationError("Configuration attribute 'validateContentMd5' does not have a valid boolean value.", ex);
                                         return null;
                                     }
                                     break;

@@ -27,21 +27,25 @@ namespace Donker.Hmac.Configuration
         /// </summary>
         public string SignatureDataSeparator { get; set; }
         /// <summary>
-        /// Gets or sets the encoding to use when working with string values.
+        /// Gets or sets the encoding to use when converting string values to bytes during the signing process.
         /// </summary>
-        public Encoding CharacterEncoding { get; set; }
+        public Encoding SignatureEncoding { get; set; }
         /// <summary>
         /// Gets or sets the name of the HMAC algorithm to use for signing.
         /// </summary>
         public string HmacAlgorithm { get; set; }
         /// <summary>
-        /// Gets or sets the maximum allowed age of a request, compared to the current system time.
+        /// Gets or sets the maximum allowed age of a request, compared to the current system time. Recommended.
         /// </summary>
-        public TimeSpan MaxRequestAge { get; set; }
+        public TimeSpan? MaxRequestAge { get; set; }
         /// <summary>
         /// Gets or sets if the request URI should be included with signing. Recommended.
         /// </summary>
         public bool SignRequestUri { get; set; }
+        /// <summary>
+        /// Gets or sets if the body of the request should be validated against the Content-MD5 header. Recommended.
+        /// </summary>
+        public bool ValidateContentMd5 { get; set; }
         /// <summary>
         /// Gets or sets the names of entire headers (both name and values) to canonicalize and include in the signature.
         /// </summary>
@@ -61,10 +65,11 @@ namespace Donker.Hmac.Configuration
                 UserHeaderName = UserHeaderName,
                 AuthorizationScheme = AuthorizationScheme,
                 SignatureDataSeparator = SignatureDataSeparator,
-                CharacterEncoding = CharacterEncoding,
+                SignatureEncoding = SignatureEncoding,
                 HmacAlgorithm = HmacAlgorithm,
                 MaxRequestAge = MaxRequestAge,
-                SignRequestUri = SignRequestUri
+                SignRequestUri = SignRequestUri,
+                ValidateContentMd5 = ValidateContentMd5
             };
 
             if (Headers != null)

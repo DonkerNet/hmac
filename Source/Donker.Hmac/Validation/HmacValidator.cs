@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Web;
 using Donker.Hmac.Configuration;
 using Donker.Hmac.Helpers;
@@ -54,14 +55,14 @@ namespace Donker.Hmac.Validation
         /// <returns>The result of the validation as a <see cref="HmacValidationResult"/> object.</returns>
         /// <remarks>
         /// The following validation logic is used:
-        /// - The Date header must be present, but cannot be older than the max request age specified in the configuration;
+        /// - The Date header must be present if a maximum request age is configured, but cannot be older than the configured value;
         /// - The username header must be present when the user header name has been configured;
         /// - The key must be found for the request;
         /// - The Authorization header must be present, must have the correct authorization scheme and must contain a signature;
         /// - The signature created from the extracted signature data must match the one on the Authorization header.
         /// 
         /// In case the request contains a body:
-        /// - The Content-MD5 header value must match an MD5 hash of the body.
+        /// - The Content-MD5 header value must match an MD5 hash of the body, if Content-MD5 validation was enabled in the configuration.
         /// </remarks>
         /// <exception cref="ArgumentNullException">The request is null.</exception>
         /// <exception cref="HmacConfigurationException">One or more of the configuration parameters are invalid.</exception>
@@ -82,14 +83,14 @@ namespace Donker.Hmac.Validation
         /// <returns>The result of the validation as a <see cref="HmacValidationResult"/> object.</returns>
         /// <remarks>
         /// The following validation logic is used:
-        /// - The Date header must be present, but cannot be older than the max request age specified in the configuration;
+        /// - The Date header must be present if a maximum request age is configured, but cannot be older than the configured value;
         /// - The username header must be present when the user header name has been configured;
-        /// - The key must be found for the request
+        /// - The key must be found for the request;
         /// - The Authorization header must be present, must have the correct authorization scheme and must contain a signature;
         /// - The signature created from the extracted signature data must match the one on the Authorization header.
         /// 
         /// In case the request contains a body:
-        /// - The Content-MD5 header value must match an MD5 hash of the body.
+        /// - The Content-MD5 header value must match an MD5 hash of the body, if Content-MD5 validation was enabled in the configuration.
         /// </remarks>
         /// <exception cref="ArgumentNullException">The request is null.</exception>
         /// <exception cref="HmacConfigurationException">One or more of the configuration parameters are invalid.</exception>
@@ -110,11 +111,14 @@ namespace Donker.Hmac.Validation
         /// <returns><c>true</c> if valid; otherwise, <c>false</c>.</returns>
         public bool IsValidRequestDate(DateTime dateTime)
         {
+            if (!HmacConfiguration.MaxRequestAge.HasValue)
+                return true;
+
             if (dateTime.Kind == DateTimeKind.Local)
                 dateTime = dateTime.ToUniversalTime();
 
             DateTime currentDateTime = DateTime.UtcNow;
-            return currentDateTime <= dateTime.Add(HmacConfiguration.MaxRequestAge);
+            return currentDateTime <= dateTime.Add(HmacConfiguration.MaxRequestAge.Value);
         }
 
         /// <summary>
@@ -218,16 +222,21 @@ namespace Donker.Hmac.Validation
         /// </summary>
         /// <param name="contentMd5">The Content-MD5 string to compare the body hash to.</param>
         /// <param name="bodyContent">The body to hash and compare.</param>
+        /// <param name="encoding">The encoding to use when converting the body content into bytes.</param>
         /// <returns><c>true</c> if equal; otherwise, <c>false</c>.</returns>
-        public bool IsValidContentMd5(string contentMd5, string bodyContent)
+        /// <exception cref="ArgumentNullException">The encoding is null.</exception>
+        public bool IsValidContentMd5(string contentMd5, string bodyContent, Encoding encoding)
         {
+            if (encoding == null)
+                throw new ArgumentNullException(nameof(encoding), "The encoding cannot be null.");
+
             if (string.IsNullOrEmpty(contentMd5))
                 return string.IsNullOrEmpty(bodyContent);
 
             if (string.IsNullOrEmpty(bodyContent))
                 return false;
 
-            string newContentMd5 = HmacSigner.CreateBase64Md5Hash(bodyContent);
+            string newContentMd5 = HmacSigner.CreateBase64Md5Hash(bodyContent, encoding);
             return contentMd5 == newContentMd5;
         }
 
@@ -236,14 +245,16 @@ namespace Donker.Hmac.Validation
         /// </summary>
         /// <param name="contentMd5">The Content-MD5 hash byte array to compare the body hash to.</param>
         /// <param name="bodyContent">The body to hash and compare.</param>
+        /// <param name="encoding">The encoding to use when converting the body content into bytes.</param>
         /// <returns><c>true</c> if equal; otherwise, <c>false</c>.</returns>
-        public bool IsValidContentMd5(byte[] contentMd5, string bodyContent)
+        /// <exception cref="ArgumentNullException">The encoding is null.</exception>
+        public bool IsValidContentMd5(byte[] contentMd5, string bodyContent, Encoding encoding)
         {
             if (contentMd5.IsNullOrEmpty())
                 return string.IsNullOrEmpty(bodyContent);
 
             string contentMd5String = Convert.ToBase64String(contentMd5);
-            return IsValidContentMd5(contentMd5String, bodyContent);
+            return IsValidContentMd5(contentMd5String, bodyContent, encoding);
         }
 
         /// <summary>
@@ -283,11 +294,14 @@ namespace Donker.Hmac.Validation
 
             // Note: the Content-MD5 and Content-Type headers are only required if the request contains a body
 
-            // The request date is validated to prevent replay attacks
-            if (!request.Date.HasValue)
-                return new HmacValidationResult(HmacValidationResultCode.DateMissing, "The request date was not found.");
-            if (!IsValidRequestDate(request.Date.Value))
-                return new HmacValidationResult(HmacValidationResultCode.DateInvalid, "The request date is invalid.");
+            // If configured, the request date is validated to prevent replay attacks
+            if (HmacConfiguration.MaxRequestAge.HasValue)
+            {
+                if(!request.Date.HasValue)
+                    return new HmacValidationResult(HmacValidationResultCode.DateMissing, "The request date was not found.");
+                if (!IsValidRequestDate(request.Date.Value))
+                    return new HmacValidationResult(HmacValidationResultCode.DateInvalid, "The request date is invalid.");
+            }
 
             // The username is always required when the header has been configured
             if (!string.IsNullOrEmpty(HmacConfiguration.UserHeaderName) && string.IsNullOrEmpty(signatureData.Username))
@@ -297,8 +311,8 @@ namespace Donker.Hmac.Validation
             if (string.IsNullOrEmpty(signatureData.Key))
                 return new HmacValidationResult(HmacValidationResultCode.KeyMissing, "The key was not found.");
 
-            // An MD5 hash of the body is generated and compared with the Content-MD5 header value to check if the body hasn't been altered
-            if (!IsValidContentMd5(signatureData.ContentMd5, request.Content))
+            // If configured, an MD5 hash of the body is generated and compared with the Content-MD5 header value to check if the body hasn't been altered
+            if (HmacConfiguration.ValidateContentMd5 && !IsValidContentMd5(signatureData.ContentMd5, request.Content))
                 return new HmacValidationResult(HmacValidationResultCode.BodyHashMismatch, "The body content differs.");
 
             // The Authorization header is always required and should contain the scheme and signature

@@ -48,7 +48,7 @@ namespace Donker.Hmac.RestSharp.Test
             // Assert
             Assert.IsNotNull(signatureData);
             Assert.AreEqual(_keyRepository.Key, signatureData.Key);
-            Assert.AreEqual(request.Method.ToString().ToUpper(), signatureData.HttpMethod);
+            Assert.AreEqual(request.Method.ToString().ToUpperInvariant(), signatureData.HttpMethod);
             Assert.AreEqual(_base64Md5Hash, signatureData.ContentMd5);
             Assert.AreEqual(ContentType, signatureData.ContentType);
             Assert.AreEqual(dateString, signatureData.Date);
@@ -84,10 +84,11 @@ namespace Donker.Hmac.RestSharp.Test
                 UserHeaderName = "X-Auth-User",
                 AuthorizationScheme = "HMAC",
                 SignatureDataSeparator = "\n",
-                CharacterEncoding = Encoding.UTF8,
+                SignatureEncoding = Encoding.UTF8,
                 HmacAlgorithm = "HMACSHA512",
                 MaxRequestAge = TimeSpan.FromMinutes(5),
                 SignRequestUri = true,
+                ValidateContentMd5 = true,
                 Headers = new List<string> { "X-Custom-Test-Header-1", "X-Custom-Test-Header-2" }
             };
         }

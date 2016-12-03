@@ -21,9 +21,9 @@ namespace Donker.Hmac.Helpers
         {
             if (request == null)
                 throw new ArgumentNullException(nameof(request), "The request cannot be null.");
-
+            
             Headers = new NameValueCollection();
-
+            
             if (request.Headers != null)
             {
                 Date = request.Headers.Date;
@@ -48,12 +48,14 @@ namespace Donker.Hmac.Helpers
                 
                 if (request.Content.Headers != null)
                 {
-                    ContentType = request.Content.Headers.ContentType.ToString();
-                    ContentMd5 = Convert.ToBase64String(request.Content.Headers.ContentMD5);
+                    ContentType = request.Content.Headers.ContentType?.ToString();
+
+                    if (request.Content.Headers.ContentMD5 != null)
+                        ContentMd5 = Convert.ToBase64String(request.Content.Headers.ContentMD5);
                 }
             }
             
-            Method = request.Method.Method;
+            Method = request.Method?.Method;
             RequestUri = request.RequestUri;
         }
 
@@ -61,7 +63,7 @@ namespace Donker.Hmac.Helpers
         {
             if (request == null)
                 throw new ArgumentNullException(nameof(request), "The request cannot be null.");
-
+            
             if (request.Headers != null)
             {
                 Headers = request.Headers;
@@ -86,7 +88,7 @@ namespace Donker.Hmac.Helpers
             {
                 Headers = new NameValueCollection();
             }
-
+            
             Content = request.InputStream;
             Method = request.HttpMethod;
             RequestUri = request.Url;

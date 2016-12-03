@@ -53,14 +53,20 @@ namespace Donker.Hmac.RestSharp.Signing
 
             HmacSignatureData signatureData = new HmacSignatureData
             {
-                HttpMethod = request.Method.ToString().ToUpper(),
-                RequestUri = client.BuildUri(request).AbsoluteUri
+                HttpMethod = request.Method.ToString().ToUpperInvariant()
             };
 
-            // Get date
-            Parameter dateParameter = client.DefaultParameters.GetHeaderParameter(HmacConstants.DateHeaderName, request.Parameters);
-            if (dateParameter?.Value != null)
-                signatureData.Date = dateParameter.Value.ToString();
+            // Get the request URI if configured
+            if (HmacConfiguration.SignRequestUri)
+                signatureData.RequestUri = client.BuildUri(request).AbsoluteUri;
+
+            // Get date if a maximum request age is configured
+            if (HmacConfiguration.MaxRequestAge.HasValue)
+            {
+                Parameter dateParameter = client.DefaultParameters.GetHeaderParameter(HmacConstants.DateHeaderName, request.Parameters);
+                if (dateParameter?.Value != null)
+                    signatureData.Date = dateParameter.Value.ToString();
+            }
 
             // Get content type
             Parameter bodyParameter = request.Parameters.GetBodyParameter(client.DefaultParameters);
@@ -68,10 +74,13 @@ namespace Donker.Hmac.RestSharp.Signing
             {
                 signatureData.ContentType = bodyParameter.Name;
 
-                // Get content MD5
-                Parameter contentMd5Parameter = client.DefaultParameters.GetHeaderParameter(HmacConstants.ContentMd5HeaderName, request.Parameters);
-                if (contentMd5Parameter?.Value != null)
-                    signatureData.ContentMd5 = contentMd5Parameter.Value.ToString();
+                // Get content MD5 if configured
+                if (HmacConfiguration.ValidateContentMd5)
+                {
+                    Parameter contentMd5Parameter = client.DefaultParameters.GetHeaderParameter(HmacConstants.ContentMd5HeaderName, request.Parameters);
+                    if (contentMd5Parameter?.Value != null)
+                        signatureData.ContentMd5 = contentMd5Parameter.Value.ToString();
+                }
             }
 
             // Get username and key
@@ -86,7 +95,7 @@ namespace Donker.Hmac.RestSharp.Signing
             // Add additional headers
             if (HmacConfiguration.Headers != null && HmacConfiguration.Headers.Count > 0)
             {
-                signatureData.Headers = new NameValueCollection(StringComparer.OrdinalIgnoreCase);
+                signatureData.Headers = new NameValueCollection();
 
                 foreach (string headerName in HmacConfiguration.Headers)
                 {
@@ -113,6 +122,9 @@ namespace Donker.Hmac.RestSharp.Signing
         {
             if (request == null)
                 throw new ArgumentNullException(nameof(request), "The request cannot be null.");
+
+            // Remove all existing Authorization headers first, just to be sure
+            request.Parameters.RemoveAll(p => p.Type == ParameterType.HttpHeader && p.Name == HmacConstants.AuthorizationHeaderName);
 
             request.AddParameter(
                 HmacConstants.AuthorizationHeaderName,

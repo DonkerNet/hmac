@@ -85,7 +85,7 @@ namespace Donker.Hmac.Test
                 Date = "Wed, 30 Dec 2015 12:30:45 GMT",
                 Username = _keyRepository.Username,
                 RequestUri = Url,
-                Headers = new NameValueCollection{{"X-Custom-Test-Header-1", "Test1"}, {"X-Custom-Test-Header-2", "Test2"}}
+                Headers = new NameValueCollection {{"X-Custom-Test-Header-1", "Test1"}, {"X-Custom-Test-Header-2", "Test2"}}
             };
             const string expectedSignature = "ZNIcDaGKZE45U24feUeaO6pZ9e7K/E1IDBf5/uktt8A3Y4Rl6nle9h0KxP1IRJGBiFZjMegci1Ya58prv/vH6Q==";
 
@@ -101,11 +101,11 @@ namespace Donker.Hmac.Test
         public void ShouldCreateMd5Hash()
         {
             // Arrange
-            IHmacConfiguration configuration = new HmacConfiguration { CharacterEncoding = Encoding.UTF8 };
+            IHmacConfiguration configuration = new HmacConfiguration { SignatureEncoding = Encoding.UTF8 };
             HmacSigner signer = new HmacSigner(configuration, _keyRepository);
 
             // Act
-            byte[] md5HashFromString = signer.CreateMd5Hash(Body);
+            byte[] md5HashFromString = signer.CreateMd5Hash(Body, Encoding.UTF8);
             byte[] md5HashFromBytes = signer.CreateMd5Hash(_bodyBytes);
             byte[] md5HashFromStrean = signer.CreateMd5Hash(_bodyStream);
 
@@ -125,11 +125,11 @@ namespace Donker.Hmac.Test
         public void ShouldCreateBase64Md5Hash()
         {
             // Arrange
-            IHmacConfiguration configuration = new HmacConfiguration { CharacterEncoding = Encoding.UTF8 };
+            IHmacConfiguration configuration = new HmacConfiguration { SignatureEncoding = Encoding.UTF8 };
             HmacSigner signer = new HmacSigner(configuration, _keyRepository);
 
             // Act
-            string base64Md5HashFromString = signer.CreateBase64Md5Hash(Body);
+            string base64Md5HashFromString = signer.CreateBase64Md5Hash(Body, Encoding.UTF8);
             string base64Md5HashFromBytes = signer.CreateBase64Md5Hash(_bodyBytes);
             string base64Md5HashFromStream = signer.CreateBase64Md5Hash(_bodyStream);
 
@@ -151,10 +151,11 @@ namespace Donker.Hmac.Test
             NameValueCollection headers = new NameValueCollection
             {
                 {"  X-Test-Header-1 ", " Value2 "},
+                {"  X-Test-Header-1 ", " Value4"},
                 {"X-Test-Header-2", "value3"},
                 {"  x-test-headeR-1 ", "Value1"}
             };
-            const string expectedHeaderString = "x-test-header-1:Value2,Value1\nx-test-header-2:value3";
+            const string expectedHeaderString = "x-test-header-1:Value2,Value4,Value1\nx-test-header-2:value3";
 
             // Act
             string headerString = signer.CreateCanonicalizedHeadersString(headers);
@@ -189,10 +190,11 @@ namespace Donker.Hmac.Test
                 UserHeaderName = "X-Auth-User",
                 AuthorizationScheme = "HMAC",
                 SignatureDataSeparator = "\n",
-                CharacterEncoding = Encoding.UTF8,
+                SignatureEncoding = Encoding.UTF8,
                 HmacAlgorithm = "HMACSHA512",
                 MaxRequestAge = TimeSpan.FromMinutes(5),
                 SignRequestUri = true,
+                ValidateContentMd5 = true,
                 Headers = new List<string> { "X-Custom-Test-Header-1", "X-Custom-Test-Header-2" }
             };
         }

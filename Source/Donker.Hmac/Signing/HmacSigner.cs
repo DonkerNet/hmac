@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
+using System.Text;
 using System.Web;
 using Donker.Hmac.Configuration;
 using Donker.Hmac.Helpers;
@@ -80,7 +81,7 @@ namespace Donker.Hmac.Signing
         {
             if (request == null)
                 throw new ArgumentNullException(nameof(request), "The request cannot be null.");
-
+            
             HmacRequestWrapper requestWrapper = new HmacRequestWrapper(request);
             return GetSignatureDataFromHttpRequest(requestWrapper);
         }
@@ -97,7 +98,7 @@ namespace Donker.Hmac.Signing
         {
             if (signatureData == null)
                 throw new ArgumentNullException(nameof(signatureData), "The signature data cannot be null.");
-            if (HmacConfiguration.CharacterEncoding == null)
+            if (HmacConfiguration.SignatureEncoding == null)
                 throw new HmacConfigurationException("The character encoding cannot be null.");
             if (string.IsNullOrEmpty(signatureData.Key))
                 throw new ArgumentException("The key cannot be null or empty.", nameof(signatureData));
@@ -105,22 +106,22 @@ namespace Donker.Hmac.Signing
             string headerString = signatureData.Headers != null
                 ? CreateCanonicalizedHeadersString(signatureData.Headers)
                 : null;
-
+            
             string representation = string.Join(
                 HmacConfiguration.SignatureDataSeparator ?? string.Empty,
-                signatureData.HttpMethod,
-                signatureData.ContentMd5,
-                signatureData.ContentType,
-                signatureData.Date,
+                signatureData.HttpMethod?.Trim().ToUpperInvariant(),
+                signatureData.ContentMd5?.Trim(),
+                signatureData.ContentType.Trim().ToLowerInvariant(),
+                signatureData.Date.Trim(),
                 signatureData.Username,
                 headerString,
-                HmacConfiguration.SignRequestUri ? signatureData.RequestUri : null);
+                signatureData.RequestUri.Trim());
 
-            byte[] keyBytes = HmacConfiguration.CharacterEncoding.GetBytes(signatureData.Key);
-            byte[] representationBytes = HmacConfiguration.CharacterEncoding.GetBytes(representation);
+            byte[] keyBytes = HmacConfiguration.SignatureEncoding.GetBytes(signatureData.Key);
+            byte[] representationBytes = HmacConfiguration.SignatureEncoding.GetBytes(representation);
 
             HMAC hmac;
-
+            
             try
             {
                 hmac = HMAC.Create(HmacConfiguration.HmacAlgorithm);
@@ -141,13 +142,10 @@ namespace Donker.Hmac.Signing
         /// <param name="content">The content to hash.</param>
         /// <returns>The hash as a <see cref="byte"/> array.</returns>
         /// <exception cref="ArgumentNullException">The content is null.</exception>
-        /// <exception cref="HmacConfigurationException">One or more of the configuration parameters are invalid.</exception>
         public byte[] CreateMd5Hash(Stream content)
         {
             if (content == null)
                 throw new ArgumentNullException(nameof(content), "The content cannot be null.");
-            if (HmacConfiguration.CharacterEncoding == null)
-                throw new HmacConfigurationException("The character encoding cannot be null.");
 
             if (content.CanSeek)
                 content.Seek(0, SeekOrigin.Begin);
@@ -162,13 +160,10 @@ namespace Donker.Hmac.Signing
         /// <param name="content">The content to hash.</param>
         /// <returns>The hash as a <see cref="byte"/> array.</returns>
         /// <exception cref="ArgumentNullException">The content is null.</exception>
-        /// <exception cref="HmacConfigurationException">One or more of the configuration parameters are invalid.</exception>
         public byte[] CreateMd5Hash(byte[] content)
         {
             if (content == null)
                 throw new ArgumentNullException(nameof(content), "The content cannot be null.");
-            if (HmacConfiguration.CharacterEncoding == null)
-                throw new HmacConfigurationException("The character encoding cannot be null.");
 
             byte[] hashBytes = Md5.ComputeHash(content);
             return hashBytes;
@@ -178,17 +173,17 @@ namespace Donker.Hmac.Signing
         /// Computes an MD5 hash from a string.
         /// </summary>
         /// <param name="content">The content to hash.</param>
+        /// <param name="encoding">The encoding used for converting the content to bytes.</param>
         /// <returns>The hash as a <see cref="byte"/> array.</returns>
-        /// <exception cref="ArgumentNullException">The content is null.</exception>
-        /// <exception cref="HmacConfigurationException">One or more of the configuration parameters are invalid.</exception>
-        public byte[] CreateMd5Hash(string content)
+        /// <exception cref="ArgumentNullException">The content or encoding is null.</exception>
+        public byte[] CreateMd5Hash(string content, Encoding encoding)
         {
             if (content == null)
                 throw new ArgumentNullException(nameof(content), "The content cannot be null.");
-            if (HmacConfiguration.CharacterEncoding == null)
-                throw new HmacConfigurationException("The character encoding cannot be null.");
+            if (encoding == null)
+                throw new ArgumentNullException(nameof(content), "The encoding cannot be null.");
 
-            byte[] contentBytes = HmacConfiguration.CharacterEncoding.GetBytes(content);
+            byte[] contentBytes = encoding.GetBytes(content);
             byte[] hashBytes = Md5.ComputeHash(contentBytes);
             return hashBytes;
         }
@@ -199,7 +194,6 @@ namespace Donker.Hmac.Signing
         /// <param name="content">The content to hash.</param>
         /// <returns>The hash as a base64 <see cref="string"/>.</returns>
         /// <exception cref="ArgumentNullException">The content is null.</exception>
-        /// <exception cref="HmacConfigurationException">One or more of the configuration parameters are invalid.</exception>
         public string CreateBase64Md5Hash(Stream content)
         {
             byte[] hashBytes = CreateMd5Hash(content);
@@ -212,7 +206,6 @@ namespace Donker.Hmac.Signing
         /// <param name="content">The content to hash.</param>
         /// <returns>The hash as a base64 <see cref="string"/>.</returns>
         /// <exception cref="ArgumentNullException">The content is null.</exception>
-        /// <exception cref="HmacConfigurationException">One or more of the configuration parameters are invalid.</exception>
         public string CreateBase64Md5Hash(byte[] content)
         {
             byte[] hashBytes = CreateMd5Hash(content);
@@ -223,12 +216,12 @@ namespace Donker.Hmac.Signing
         /// Computes an MD5 hash from a string and returns it as a base64 converted string.
         /// </summary>
         /// <param name="content">The content to hash.</param>
+        /// <param name="encoding">The encoding used for converting the content to bytes.</param>
         /// <returns>The hash as a base64 <see cref="string"/>.</returns>
-        /// <exception cref="ArgumentNullException">The content is null.</exception>
-        /// <exception cref="HmacConfigurationException">One or more of the configuration parameters are invalid.</exception>
-        public string CreateBase64Md5Hash(string content)
+        /// <exception cref="ArgumentNullException">The content or encoding is null.</exception>
+        public string CreateBase64Md5Hash(string content, Encoding encoding)
         {
-            byte[] hashBytes = CreateMd5Hash(content);
+            byte[] hashBytes = CreateMd5Hash(content, encoding);
             return Convert.ToBase64String(hashBytes);
         }
 
@@ -252,25 +245,29 @@ namespace Donker.Hmac.Signing
             if (headers == null)
                 throw new ArgumentNullException(nameof(headers), "The header collection cannot be null.");
 
-            List<string> headerList = new List<string>();
+            List<KeyValuePair<string, string>> headerList = new List<KeyValuePair<string, string>>(headers.Keys.Count);
 
             foreach (string key in headers.Keys)
             {
                 string headerName = key.Trim().ToLowerInvariant();
                 string[] headerValueArray = headers.GetValues(key);
-                string headerValues = null;
 
-                if (headerValueArray != null)
+                if (headerValueArray != null && headerValueArray.Length > 0)
                 {
                     IEnumerable<string> normalizedHeaderValues = headerValueArray.Select(hv => hv.NormalizeWhiteSpace());
-                    headerValues = string.Join(",", normalizedHeaderValues);
+                    headerList.Add(new KeyValuePair<string, string>(headerName, string.Join(",", normalizedHeaderValues)));
                 }
-
-                headerList.Add(string.Join(":", headerName, headerValues));
+                else
+                {
+                    headerList.Add(new KeyValuePair<string, string>(headerName, string.Empty));
+                }
             }
 
-            headerList.Sort(StringComparer.Ordinal);
-            return string.Join(HmacConfiguration.SignatureDataSeparator ?? string.Empty, headerList);
+            IEnumerable<string> canonicalizedHeaders = headerList
+                .OrderBy(kvp => kvp.Key)
+                .Select(kvp => $"{kvp.Key}:{string.Join(",", kvp.Value)}");
+
+            return string.Join(HmacConfiguration.SignatureDataSeparator ?? string.Empty, canonicalizedHeaders);
         }
 
         /// <summary>
@@ -289,6 +286,9 @@ namespace Donker.Hmac.Signing
                 throw new ArgumentException("The request's header collection cannot be null.");
             if (string.IsNullOrEmpty(HmacConfiguration.AuthorizationScheme))
                 throw new HmacConfigurationException("The authorization scheme has not been configured.");
+
+            // Remove all existing Authorization headers first, just to be sure
+            request.Headers.Remove(HmacConstants.AuthorizationHeaderName);
 
             request.Headers.Add(
                 HmacConstants.AuthorizationHeaderName,
@@ -312,6 +312,9 @@ namespace Donker.Hmac.Signing
             if (string.IsNullOrEmpty(HmacConfiguration.AuthorizationScheme))
                 throw new HmacConfigurationException("The authorization scheme has not been configured.");
 
+            // Remove all existing Authorization headers first, just to be sure
+            request.Headers.Remove(HmacConstants.AuthorizationHeaderName);
+
             request.Headers.Add(
                 HmacConstants.AuthorizationHeaderName,
                 string.Format(HmacConstants.AuthorizationHeaderFormat, HmacConfiguration.AuthorizationScheme, signature));
@@ -321,25 +324,29 @@ namespace Donker.Hmac.Signing
         {
             HmacSignatureData signatureData = new HmacSignatureData
             {
-                HttpMethod = request.Method.ToUpper(),
-                RequestUri = request.RequestUri.AbsoluteUri
+                HttpMethod = request.Method.ToUpperInvariant()
             };
 
-            // Get the request date
-            if (request.Date.HasValue)
+            // Get the request URI if configured
+            if (HmacConfiguration.SignRequestUri)
+                signatureData.RequestUri = request.RequestUri.AbsoluteUri;
+
+            // Get the request date if a maximum request age is configured
+            if (HmacConfiguration.MaxRequestAge.HasValue && request.Date.HasValue)
             {
                 DateTime date = request.Date.Value.UtcDateTime;
                 signatureData.Date = date.ToString(HmacConstants.DateHeaderFormat, DateHeaderCulture);
             }
 
-            // Get the content type and MD5 body hash
+            // Get the content type and, if configured, the MD5 body hash
             signatureData.ContentType = request.ContentType;
-            signatureData.ContentMd5 = request.ContentMd5;
+            if (HmacConfiguration.ValidateContentMd5)
+                signatureData.ContentMd5 = request.ContentMd5;
 
             // Get the username
             if (!string.IsNullOrEmpty(HmacConfiguration.UserHeaderName))
             {
-                bool hasUserHeader = request.Headers.AllKeys.Contains(HmacConfiguration.UserHeaderName, StringComparer.OrdinalIgnoreCase);
+                bool hasUserHeader = request.Headers.Keys.OfType<string>().Contains(HmacConfiguration.UserHeaderName);
                 if (hasUserHeader)
                     signatureData.Username = request.Headers[HmacConfiguration.UserHeaderName];
             }
@@ -357,7 +364,7 @@ namespace Donker.Hmac.Signing
             // Add full additional headers
             if (HmacConfiguration.Headers != null && HmacConfiguration.Headers.Count > 0)
             {
-                signatureData.Headers = new NameValueCollection(StringComparer.OrdinalIgnoreCase);
+                signatureData.Headers = new NameValueCollection();
 
                 foreach (string headerName in HmacConfiguration.Headers)
                 {

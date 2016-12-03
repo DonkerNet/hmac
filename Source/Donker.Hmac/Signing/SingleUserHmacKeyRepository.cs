@@ -21,14 +21,14 @@ namespace Donker.Hmac.Signing
         public StringComparison UsernameComparison { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SingleHmacKeyRepository"/> class using the specified key.
+        /// Initializes a new instance of the <see cref="SingleHmacKeyRepository"/> class using the specified key and comparison.
         /// </summary>
         /// <param name="username">The username to only return the key for.</param>
         /// <param name="key">The key to return for the username.</param>
         /// <param name="usernameComparison">The comparer to use when checking if the username matches.</param>
         /// <exception cref="ArgumentNullException">The username or key is null.</exception>
         /// <exception cref="ArgumentException">The username or key is empty, or the username comparison is not a valid <see cref="StringComparison"/> value.</exception>
-        public SingleUserHmacKeyRepository(string username, string key, StringComparison usernameComparison = StringComparison.Ordinal)
+        public SingleUserHmacKeyRepository(string username, string key, StringComparison usernameComparison)
         {
             if (username == null)
                 throw new ArgumentNullException(nameof(username), "The username cannot be null.");
@@ -44,6 +44,18 @@ namespace Donker.Hmac.Signing
             Username = username;
             Key = key;
             UsernameComparison = usernameComparison;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SingleHmacKeyRepository"/> class using the specified key and ordinal case-sensitive comparison.
+        /// </summary>
+        /// <param name="username">The username to only return the key for.</param>
+        /// <param name="key">The key to return for the username.</param>
+        /// <exception cref="ArgumentNullException">The username or key is null.</exception>
+        /// <exception cref="ArgumentException">The username or key is empty.</exception>
+        public SingleUserHmacKeyRepository(string username, string key)
+            :this(username, key, StringComparison.Ordinal)
+        {
         }
 
         /// <summary>

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Globalization;
+using System.Text;
 using Donker.Hmac.Configuration;
+using Donker.Hmac.Helpers;
 using Donker.Hmac.RestSharp.Helpers;
 using Donker.Hmac.RestSharp.Signing;
 using Donker.Hmac.Signing;
@@ -51,14 +53,16 @@ namespace Donker.Hmac.RestSharp.Authenticators
         /// <param name="client">The client executing the request.</param>
         /// <param name="request">The request that is being executed and should be signed.</param>
         /// <remarks>
-        /// The following RestSharp parameters MUST be added BEFORE executing the request and may only be present once:
+        /// The following RestSharp parameters need to be added before executing the request and may only be present once:
         /// - The custom username header;
         /// - The body (if there is one);
         /// - The Content-Type header (only if there is a body, RestSharp should do this automatically if a body and handler is set).
         /// 
-        /// The following parameters MUST NOT be added before executing the request because they are added by this authenticator:
-        /// - The Date header;
-        /// - The Content-MD5 header (if a body is present);
+        /// The following parameters are created and added by this authenticator if they were not already included:
+        /// - The Date header (only if a maximum request age is configured);
+        /// - The Content-MD5 header (only if configured and a body is present, the client's encoding is used for string conversion if possible, otherwise UTF-8 is used).
+        /// 
+        /// The following parameters should not be added before executing the request because they are overwritten by this authenticator anyway:
         /// - The Authorization header.
         /// 
         /// Additional note 1:
@@ -79,49 +83,70 @@ namespace Donker.Hmac.RestSharp.Authenticators
             if (string.IsNullOrEmpty(Configuration.AuthorizationScheme))
                 throw new HmacConfigurationException("The authorization scheme cannot be null or empty.");
 
-            string body = GetBody(client, request);
-            SetDate(request);
-            SetContentMd5(request, body);
+            // If configured, create and set the Date header if it was not specified yet
+            if (Configuration.MaxRequestAge.HasValue && request.Parameters.GetHeaderParameter(HmacConstants.DateHeaderName, client.DefaultParameters) == null)
+                SetDate(request, DateTime.UtcNow);
+
+            // If configured, create and set the Content-MD5 header if it was not specified yet
+            if (Configuration.ValidateContentMd5 && request.Parameters.GetHeaderParameter(HmacConstants.ContentMd5HeaderName, client.DefaultParameters) == null)
+            {
+                byte[] bodyBytes = GetBodyBytes(client, request);
+                SetContentMd5(request, bodyBytes);
+            }
+
             string signature = CreateSignature(client, request);
             AddAuthorizationHeader(request, signature);
         }
 
         /// <summary>
-        /// Retrieves the request body as a string.
+        /// Retrieves the request body as a byte array.
         /// </summary>
         /// <param name="client">The client in which to search for the body.</param>
         /// <param name="request">The request in which to search for the body.</param>
-        /// <returns>The request body as a <see cref="string"/> if found; otherwise <c>null</c>.</returns>
-        protected virtual string GetBody(IRestClient client, IRestRequest request)
+        /// <returns>The request body as a <see cref="byte"/> array if found; otherwise <c>null</c>.</returns>
+        protected virtual byte[] GetBodyBytes(IRestClient client, IRestRequest request)
         {
-            string body = null;
+            byte[] bodyBytes = null;
+            
             Parameter bodyParameter = request.Parameters.GetBodyParameter(client.DefaultParameters);
-            if (bodyParameter?.Value != null)
-                body = bodyParameter.Value.ToString();
-            return body;
+
+            if (bodyParameter != null)
+            {
+                bodyBytes = bodyParameter.Value as byte[];
+
+                if (bodyBytes == null)
+                {
+                    Encoding encoding = client.Encoding ?? Encoding.UTF8;
+                    string body = Convert.ToString(bodyParameter.Value);
+                    bodyBytes = encoding.GetBytes(body);
+                }
+            }
+
+            return bodyBytes;
         }
 
         /// <summary>
         /// Sets the HTTP Date header for the request.
         /// </summary>
         /// <param name="request">The request in which to set the date.</param>
-        protected virtual void SetDate(IRestRequest request)
+        /// <param name="date">The date to set.</param>
+        protected virtual void SetDate(IRestRequest request, DateTime date)
         {
-            string date = DateTime.UtcNow.ToString(HmacConstants.DateHeaderFormat, DateHeaderCulture);
-            request.AddParameter(HmacConstants.DateHeaderName, date, ParameterType.HttpHeader);
+            string dateString = date.ToString(HmacConstants.DateHeaderFormat, DateHeaderCulture);
+            request.AddParameter(HmacConstants.DateHeaderName, dateString, ParameterType.HttpHeader);
         }
 
         /// <summary>
         /// Creates an MD5 content hash from the body and sets it in the HTTP Content-MD5 header for the request.
         /// </summary>
         /// <param name="request">The request in which to set the hash.</param>
-        /// <param name="body">The body to hash.</param>
-        protected virtual void SetContentMd5(IRestRequest request, string body)
+        /// <param name="bodyBytes">The body to hash.</param>
+        protected virtual void SetContentMd5(IRestRequest request, byte[] bodyBytes)
         {
-            if (string.IsNullOrEmpty(body))
+            if (bodyBytes.IsNullOrEmpty())
                 return;
             
-            string contentMd5 = Signer.CreateBase64Md5Hash(body);
+            string contentMd5 = Signer.CreateBase64Md5Hash(bodyBytes);
             request.AddParameter(HmacConstants.ContentMd5HeaderName, contentMd5, ParameterType.HttpHeader);
         }
 

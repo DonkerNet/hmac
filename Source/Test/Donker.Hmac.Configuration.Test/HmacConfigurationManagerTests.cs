@@ -43,10 +43,11 @@ namespace Donker.Hmac.Configuration.Test
                 UserHeaderName = "X-Test-User",
                 AuthorizationScheme = "TEST",
                 SignatureDataSeparator = "_",
-                CharacterEncoding = Encoding.UTF32,
+                SignatureEncoding = Encoding.UTF32,
                 HmacAlgorithm = "HMACSHA256",
                 MaxRequestAge = TimeSpan.FromMinutes(2),
                 SignRequestUri = false,
+                ValidateContentMd5 = true,
                 Headers = new List<string> { "X-Test-Header-1", "X-Test-Header-2" }
             };
 
@@ -69,10 +70,11 @@ namespace Donker.Hmac.Configuration.Test
                 UserHeaderName = "X-Test-User",
                 AuthorizationScheme = "TEST",
                 SignatureDataSeparator = "_",
-                CharacterEncoding = Encoding.UTF32,
+                SignatureEncoding = Encoding.UTF32,
                 HmacAlgorithm = "HMACSHA256",
                 MaxRequestAge = TimeSpan.FromMinutes(2),
                 SignRequestUri = false,
+                ValidateContentMd5 = true,
                 Headers = new List<string> { "X-Test-Header-1", "X-Test-Header-2" }
             };
 
@@ -132,10 +134,11 @@ namespace Donker.Hmac.Configuration.Test
                 UserHeaderName = "X-Test-User",
                 AuthorizationScheme = "TEST",
                 SignatureDataSeparator = "_",
-                CharacterEncoding = Encoding.UTF32,
+                SignatureEncoding = Encoding.UTF32,
                 HmacAlgorithm = "HMACSHA256",
                 MaxRequestAge = TimeSpan.FromMinutes(2),
                 SignRequestUri = false,
+                ValidateContentMd5 = true,
                 Headers = new List<string> { "X-Test-Header-1", "X-Test-Header-2" }
             };
             
@@ -158,10 +161,11 @@ namespace Donker.Hmac.Configuration.Test
                 UserHeaderName = "X-Auth-User",
                 AuthorizationScheme = "HMAC",
                 SignatureDataSeparator = "\n",
-                CharacterEncoding = Encoding.UTF8,
+                SignatureEncoding = Encoding.UTF8,
                 HmacAlgorithm = "HMACSHA512",
                 MaxRequestAge = TimeSpan.FromMinutes(5),
                 SignRequestUri = true,
+                ValidateContentMd5 = true,
                 Headers = null
             };
 
@@ -187,7 +191,7 @@ namespace Donker.Hmac.Configuration.Test
             Assert.AreEqual(expected.UserHeaderName, actual.UserHeaderName);
             Assert.AreEqual(expected.AuthorizationScheme, actual.AuthorizationScheme);
             Assert.AreEqual(expected.SignatureDataSeparator, actual.SignatureDataSeparator);
-            Assert.AreEqual(expected.CharacterEncoding, actual.CharacterEncoding);
+            Assert.AreEqual(expected.SignatureEncoding, actual.SignatureEncoding);
             Assert.AreEqual(expected.HmacAlgorithm, actual.HmacAlgorithm);
             Assert.AreEqual(expected.MaxRequestAge, actual.MaxRequestAge);
             Assert.AreEqual(expected.SignRequestUri, actual.SignRequestUri);
