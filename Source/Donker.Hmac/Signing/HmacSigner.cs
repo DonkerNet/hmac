@@ -106,6 +106,8 @@ namespace Donker.Hmac.Signing
             string headerString = signatureData.Headers != null
                 ? CreateCanonicalizedHeadersString(signatureData.Headers)
                 : null;
+
+            string requestUri = CreateCanonicalizedUriString(signatureData.RequestUri);
             
             string representation = string.Join(
                 HmacConfiguration.SignatureDataSeparator ?? string.Empty,
@@ -115,7 +117,7 @@ namespace Donker.Hmac.Signing
                 signatureData.Date?.Trim(),
                 signatureData.Username,
                 headerString,
-                signatureData.RequestUri?.Trim());
+                requestUri);
 
             byte[] keyBytes = HmacConfiguration.SignatureEncoding.GetBytes(signatureData.Key);
             byte[] representationBytes = HmacConfiguration.SignatureEncoding.GetBytes(representation);
@@ -142,14 +144,17 @@ namespace Donker.Hmac.Signing
         /// <param name="content">The content to hash.</param>
         /// <returns>The hash as a <see cref="byte"/> array.</returns>
         /// <exception cref="ArgumentNullException">The content is null.</exception>
+        /// <exception cref="ArgumentException">The content stream does not support seeking or reading.</exception>
         public byte[] CreateMd5Hash(Stream content)
         {
             if (content == null)
                 throw new ArgumentNullException(nameof(content), "The content cannot be null.");
+            if (!content.CanSeek)
+                throw new ArgumentException("The content stream does not support seeking.", nameof(content));
+            if (!content.CanRead)
+                throw new ArgumentException("The content stream does not support reading.", nameof(content));
 
-            if (content.CanSeek)
-                content.Seek(0, SeekOrigin.Begin);
-            
+            content.Seek(0, SeekOrigin.Begin);
             byte[] hashBytes = Md5.ComputeHash(content);
             return hashBytes;
         }
@@ -194,6 +199,7 @@ namespace Donker.Hmac.Signing
         /// <param name="content">The content to hash.</param>
         /// <returns>The hash as a base64 <see cref="string"/>.</returns>
         /// <exception cref="ArgumentNullException">The content is null.</exception>
+        /// <exception cref="ArgumentException">The content stream does not support seeking or reading.</exception>
         public string CreateBase64Md5Hash(Stream content)
         {
             byte[] hashBytes = CreateMd5Hash(content);
@@ -271,6 +277,56 @@ namespace Donker.Hmac.Signing
         }
 
         /// <summary>
+        /// Creates a canonicalized string of an URI.
+        /// </summary>
+        /// <param name="uri">The URI to canonicalize.</param>
+        /// <returns>The canonicalized URI as a <see cref="string"/>.</returns>
+        /// <remarks>
+        /// In the case of a valid absolute URI, canonicalization will also:
+        /// - Convert the scheme and authority parts of the URI to lowercase;
+        /// - Append the default port if no port was specified (-1 if no default port is known).
+        /// </remarks>
+        /// <exception cref="ArgumentNullException">The URI is null.</exception>
+        public virtual string CreateCanonicalizedUriString(Uri uri)
+        {
+            if (uri == null)
+                throw new ArgumentNullException(nameof(uri), "The URI cannot be null.");
+
+            // If it is not an absolute URI, we can't do any canonicalization
+            if (!uri.IsAbsoluteUri)
+                return uri.ToString();
+
+            // The scheme and authority are automatically converted to lowercase by the Uri class
+            return $"{uri.Scheme}{Uri.SchemeDelimiter}{uri.Host}:{uri.Port}{uri.PathAndQuery}";
+        }
+
+        /// <summary>
+        /// Creates a canonicalized version of a URI string.
+        /// </summary>
+        /// <param name="uriString">The URI to canonicalize.</param>
+        /// <returns>The canonicalized URI as a <see cref="string"/>.</returns>
+        /// <remarks>
+        /// Canonicalization is done by removing the leading and trailing whitespace from the string.
+        /// In the case of a valid absolute URI, canonicalization will also:
+        /// - Convert the scheme and authority parts of the URI to lowercase;
+        /// - Append the default port if no port was specified (-1 if no default port is known).
+        /// </remarks>
+        public virtual string CreateCanonicalizedUriString(string uriString)
+        {
+            if (uriString == null)
+                return null;
+            
+            uriString = uriString.Trim();
+
+            // If the URI is empty or not an absolute URI, we can't do any canonicalization
+            Uri uri;
+            if (uriString.Length == 0 || !Uri.TryCreate(uriString, UriKind.Absolute, out uri))
+                return uriString;
+            
+            return CreateCanonicalizedUriString(uri);
+        }
+
+        /// <summary>
         /// Adds the HTTP Authorization header with the signature to the request.
         /// </summary>
         /// <param name="request">The request in which to set the authorization.</param>
@@ -345,11 +401,7 @@ namespace Donker.Hmac.Signing
 
             // Get the username
             if (!string.IsNullOrEmpty(HmacConfiguration.UserHeaderName))
-            {
-                bool hasUserHeader = request.Headers.Keys.OfType<string>().Contains(HmacConfiguration.UserHeaderName);
-                if (hasUserHeader)
-                    signatureData.Username = request.Headers[HmacConfiguration.UserHeaderName];
-            }
+                signatureData.Username = request.Headers[HmacConfiguration.UserHeaderName];
 
             // Get the key
             try
@@ -366,7 +418,7 @@ namespace Donker.Hmac.Signing
             {
                 signatureData.Headers = new NameValueCollection();
 
-                foreach (string headerName in HmacConfiguration.Headers)
+                foreach (string headerName in HmacConfiguration.Headers.Distinct(StringComparer.OrdinalIgnoreCase))
                 {
                     if (string.IsNullOrEmpty(headerName))
                         continue;

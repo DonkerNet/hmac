@@ -32,24 +32,27 @@ namespace Donker.Hmac.ExampleClient
             client.AddDefaultHeader("X-Custom-Header", "Knock knock...");
 
             // Execute the GET request
+            Console.WriteLine("Neo searches for a spoon.");
             IRestRequest getRequest = new RestRequest("spoon", Method.GET);
             getRequest.AddHeader(configuration.UserHeaderName, "Neo");
             IRestResponse<ExampleModel> getResponse = client.Execute<ExampleModel>(getRequest);
-            Console.WriteLine("There is a '{0}'!", getResponse.Data.Value);
+            Console.WriteLine("  There is a '{0}'!", getResponse.Data.Value);
 
             // Execute the POST request
+            Console.WriteLine("Neo posts his sunglasses.");
             IRestRequest postRequest = new RestRequest(Method.POST);
             postRequest.RequestFormat = DataFormat.Json;
             postRequest.AddHeader(configuration.UserHeaderName, "Neo");
             postRequest.AddBody(new ExampleModel { Value = "sunglasses" });
             IRestResponse postResponse = client.Execute(postRequest);
-            Console.WriteLine(postResponse.Content);
+            Console.WriteLine("  {0}", postResponse.Content);
 
             // Execute GET request with an incorrect username
+            Console.WriteLine("Morpheus searches for The One.");
             IRestRequest incorrectGetRequest = new RestRequest("The One", Method.GET);
             incorrectGetRequest.AddHeader(configuration.UserHeaderName, "Morpheus");
             IRestResponse incorrectGetResponse = client.Execute(incorrectGetRequest);
-            Console.WriteLine(incorrectGetResponse.Content);
+            Console.WriteLine("  {0}", incorrectGetResponse.Content);
 
 #if DEBUG
             if (Debugger.IsAttached)

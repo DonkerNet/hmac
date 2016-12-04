@@ -30,7 +30,7 @@
         /// </summary>
         public const int BodyHashMismatch = 5;
         /// <summary>
-        /// The authorization header could not be found.
+        /// The authorization header could not be found or was empty.
         /// </summary>
         public const int AuthorizationMissing = 6;
         /// <summary>

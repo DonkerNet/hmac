@@ -17,6 +17,8 @@ namespace Donker.Hmac.Helpers
         {
             if (value == null)
                 throw new ArgumentNullException(nameof(value), "The text cannot be null.");
+            if (value.Length == 0)
+                return value;
 
             StringBuilder resultBuilder = new StringBuilder();
 

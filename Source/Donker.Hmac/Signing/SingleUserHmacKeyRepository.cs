@@ -21,7 +21,7 @@ namespace Donker.Hmac.Signing
         public StringComparison UsernameComparison { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SingleHmacKeyRepository"/> class using the specified key and comparison.
+        /// Initializes a new instance of the <see cref="SingleHmacKeyRepository"/> class using the specified username, key and username comparison.
         /// </summary>
         /// <param name="username">The username to only return the key for.</param>
         /// <param name="key">The key to return for the username.</param>
@@ -47,7 +47,7 @@ namespace Donker.Hmac.Signing
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SingleHmacKeyRepository"/> class using the specified key and ordinal case-sensitive comparison.
+        /// Initializes a new instance of the <see cref="SingleHmacKeyRepository"/> class using the specified username, key and ordinal case-sensitive comparison.
         /// </summary>
         /// <param name="username">The username to only return the key for.</param>
         /// <param name="key">The key to return for the username.</param>

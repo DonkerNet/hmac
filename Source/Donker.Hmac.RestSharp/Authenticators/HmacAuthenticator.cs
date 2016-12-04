@@ -54,7 +54,7 @@ namespace Donker.Hmac.RestSharp.Authenticators
         /// <param name="request">The request that is being executed and should be signed.</param>
         /// <remarks>
         /// The following RestSharp parameters need to be added before executing the request and may only be present once:
-        /// - The custom username header;
+        /// - The custom username header, if required;
         /// - The body (if there is one);
         /// - The Content-Type header (only if there is a body, RestSharp should do this automatically if a body and handler is set).
         /// 
@@ -66,7 +66,7 @@ namespace Donker.Hmac.RestSharp.Authenticators
         /// - The Authorization header.
         /// 
         /// Additional note 1:
-        /// The Content-Type is extracted from the body parameter (from the <see cref="Parameter.Name"/> property), NOT from a header parameter.
+        /// The Content-Type is extracted from the body parameter (the <see cref="Parameter.Name"/> property), NOT from a header parameter.
         /// 
         /// Additional note 2:
         /// Keep in mind that when signing additional canonicalized headers, some will possibly not be available for signing, which may cause validation to fail.
@@ -91,7 +91,8 @@ namespace Donker.Hmac.RestSharp.Authenticators
             if (Configuration.ValidateContentMd5 && request.Parameters.GetHeaderParameter(HmacConstants.ContentMd5HeaderName, client.DefaultParameters) == null)
             {
                 byte[] bodyBytes = GetBodyBytes(client, request);
-                SetContentMd5(request, bodyBytes);
+                if (!bodyBytes.IsNullOrEmpty())
+                    SetContentMd5(request, bodyBytes);
             }
 
             string signature = CreateSignature(client, request);
@@ -143,9 +144,6 @@ namespace Donker.Hmac.RestSharp.Authenticators
         /// <param name="bodyBytes">The body to hash.</param>
         protected virtual void SetContentMd5(IRestRequest request, byte[] bodyBytes)
         {
-            if (bodyBytes.IsNullOrEmpty())
-                return;
-            
             string contentMd5 = Signer.CreateBase64Md5Hash(bodyBytes);
             request.AddParameter(HmacConstants.ContentMd5HeaderName, contentMd5, ParameterType.HttpHeader);
         }

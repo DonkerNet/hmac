@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Linq;
 using Donker.Hmac.Configuration;
 using Donker.Hmac.RestSharp.Helpers;
 using Donker.Hmac.Signing;
@@ -83,13 +84,19 @@ namespace Donker.Hmac.RestSharp.Signing
                 }
             }
 
-            // Get username and key
+            // Get username
             Parameter usernameParameter = client.DefaultParameters.GetHeaderParameter(HmacConfiguration.UserHeaderName, request.Parameters);
             if (usernameParameter?.Value != null)
-            {
                 signatureData.Username = usernameParameter.Value.ToString();
-                if (!string.IsNullOrEmpty(signatureData.Username))
-                    signatureData.Key = HmacKeyRepository.GetHmacKeyForUsername(signatureData.Username);
+
+            // Get the key
+            try
+            {
+                signatureData.Key = HmacKeyRepository.GetHmacKeyForUsername(signatureData.Username);
+            }
+            catch (Exception ex)
+            {
+                throw new HmacKeyRepositoryException("Failed to retrieve the key.", ex);
             }
 
             // Add additional headers
@@ -97,7 +104,7 @@ namespace Donker.Hmac.RestSharp.Signing
             {
                 signatureData.Headers = new NameValueCollection();
 
-                foreach (string headerName in HmacConfiguration.Headers)
+                foreach (string headerName in HmacConfiguration.Headers.Distinct(StringComparer.OrdinalIgnoreCase))
                 {
                     IEnumerable<string> headerValues;
 

@@ -159,7 +159,7 @@ namespace Donker.Hmac.Validation
         /// <param name="contentMd5">The Content-MD5 string to compare the body hash to.</param>
         /// <param name="bodyContent">The body to hash and compare.</param>
         /// <returns><c>true</c> if equal; otherwise, <c>false</c>.</returns>
-        /// <exception cref="ArgumentException">The body content stream does not support seeking.</exception>
+        /// <exception cref="ArgumentException">The body content stream does not support seeking or reading.</exception>
         public bool IsValidContentMd5(string contentMd5, Stream bodyContent)
         {
             if (bodyContent == null)
@@ -167,6 +167,8 @@ namespace Donker.Hmac.Validation
 
             if (!bodyContent.CanSeek)
                 throw new ArgumentException("The body content stream does not support seeking.", nameof(bodyContent));
+            if (!bodyContent.CanRead)
+                throw new ArgumentException("The body content stream does not support reading.", nameof(bodyContent));
 
             if (string.IsNullOrEmpty(contentMd5))
                 return bodyContent.Length == 0;
@@ -181,7 +183,7 @@ namespace Donker.Hmac.Validation
         /// <param name="contentMd5">The Content-MD5 hash byte array to compare the body hash to.</param>
         /// <param name="bodyContent">The body to hash and compare.</param>
         /// <returns><c>true</c> if equal; otherwise, <c>false</c>.</returns>
-        /// <exception cref="ArgumentException">The body content stream does not support seeking.</exception>
+        /// <exception cref="ArgumentException">The body content stream does not support seeking or reading.</exception>
         public bool IsValidContentMd5(byte[] contentMd5, Stream bodyContent)
         {
             string contentMd5String = contentMd5.IsNullOrEmpty() ? null : Convert.ToBase64String(contentMd5);
@@ -321,19 +323,19 @@ namespace Donker.Hmac.Validation
             // The Authorization header is always required and should contain the scheme and signature
 
             IList<string> authorizations = request.Headers.GetValues(HmacConstants.AuthorizationHeaderName);
-            string signature;
+            string authorization;
 
-            if (authorizations == null || authorizations.Count == 0 || string.IsNullOrEmpty(signature = authorizations.FirstOrDefault()))
+            if (authorizations == null || string.IsNullOrEmpty(authorization = authorizations.FirstOrDefault()))
                 return new HmacValidationResult(HmacValidationResultCode.AuthorizationMissing, "The signature was not found.");
 
-            string[] signatureParts = signature.Split(new[] { ' ' }, 2);
+            string[] authorizationParts = authorization.Split(' ');
 
-            if (signatureParts.Length < 2 || signatureParts[0] != HmacConfiguration.AuthorizationScheme)
+            if (authorizationParts.Length < 2 || authorizationParts[0] != HmacConfiguration.AuthorizationScheme)
                 return new HmacValidationResult(HmacValidationResultCode.AuthorizationInvalid, "The signature was not correctly specified.");
 
             // Finally, the signature from the Authorization header should match the newly created signature
 
-            signature = signatureParts[1];
+            string signature = authorizationParts[1];
 
             string newSignature = HmacSigner.CreateSignature(signatureData);
 

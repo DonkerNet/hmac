@@ -87,14 +87,20 @@ namespace Donker.Hmac.Test
                 RequestUri = Url,
                 Headers = new NameValueCollection {{"X-Custom-Test-Header-1", "Test1"}, {"X-Custom-Test-Header-2", "Test2"}}
             };
-            const string expectedSignature = "ZNIcDaGKZE45U24feUeaO6pZ9e7K/E1IDBf5/uktt8A3Y4Rl6nle9h0KxP1IRJGBiFZjMegci1Ya58prv/vH6Q==";
+            const string expectedSignature = "CSDWHwt5sOWkBKS5mSNWrgJaXREQB6CKywVyB/A4IDQ65h3gzR9/Uutug34ikpcW3JlnVyAL+xbu/eNaq99q/Q==";
+
+            HmacSignatureData signatureData2 = new HmacSignatureData { Key = _keyRepository.Key };
+            const string expectedSignature2 = "QwPLzI1RUBRyYerrolY3+4Mzuw8Z07YfxnpP9va2ckH/I7UvdPBMkcaomWOaC5pZym9x+t/BA/2VTP6pjje1DQ==";
 
             // Act
             string signature = signer.CreateSignature(signatureData);
+            string signature2 = signer.CreateSignature(signatureData2);
 
             // Assert
             Assert.IsNotNull(signature);
             Assert.AreEqual(expectedSignature, signature);
+            Assert.IsNotNull(signature2);
+            Assert.AreEqual(expectedSignature2, signature2);
         }
 
         [TestMethod]
@@ -163,6 +169,38 @@ namespace Donker.Hmac.Test
             // Assert
             Assert.IsNotNull(headerString);
             Assert.AreEqual(expectedHeaderString, headerString);
+        }
+
+        [TestMethod]
+        public void ShouldCreateCanonicalizedUriString()
+        {
+            // Arrange
+            IHmacConfiguration configuration = new HmacConfiguration();
+            HmacSigner signer = new HmacSigner(configuration, _keyRepository);
+
+            const string uriString = "  HTTP://WWW.EXAMPLE.DOMAIN/Test?Key=Value  ";
+            const string expectedUriString = "http://www.example.domain:80/Test?Key=Value";
+
+            const string uriString2 = "  httpS://WWW.EXAMPLE.DOMAIN:3000/Test?Key=Value  ";
+            const string expectedUriString2 = "https://www.example.domain:3000/Test?Key=Value";
+
+            const string uriString3 = "  TEST://WWW.EXAMPLE.DOMAIN/Test?Key=Value  ";
+            const string expectedUriString3 = "test://www.example.domain:-1/Test?Key=Value";
+
+            const string relativeUriString = "/Test?Key=Value";
+            Uri relativeUri = new Uri(relativeUriString, UriKind.Relative);
+
+            // Act
+            string result1 = signer.CreateCanonicalizedUriString(uriString);
+            string result2 = signer.CreateCanonicalizedUriString(uriString2);
+            string result3 = signer.CreateCanonicalizedUriString(uriString3);
+            string result4 = signer.CreateCanonicalizedUriString(relativeUri);
+
+            // Assert
+            Assert.AreEqual(expectedUriString, result1);
+            Assert.AreEqual(expectedUriString2, result2);
+            Assert.AreEqual(expectedUriString3, result3);
+            Assert.AreEqual(relativeUriString, result4);
         }
 
         [TestMethod]
