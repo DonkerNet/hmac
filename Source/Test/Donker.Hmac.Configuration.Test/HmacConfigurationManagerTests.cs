@@ -28,6 +28,10 @@ namespace Donker.Hmac.Configuration.Test
         authorizationScheme='TEST_MODIFIED'>
       <headers/>
     </configuration>
+    <configuration name='TestConfiguration2'
+        authorizationScheme='TEST_MODIFIED_2'>
+      <headers/>
+    </configuration>
   </configurations>
 </donker.hmac>";
         }
@@ -176,6 +180,69 @@ namespace Donker.Hmac.Configuration.Test
             // Assert
             AssertConfiguration(expectedConfiguration, defaultConfigByKey);
             AssertConfiguration(expectedConfiguration, defaultConfig);
+        }
+
+        [TestMethod]
+        public void ShouldGetAllKeys()
+        {
+            // Arrange
+            HmacConfigurationManager configurationManager = new HmacConfigurationManager();
+            string[] expectedKeys =
+            {
+                "TestConfiguration",
+                "TestConfiguration2"
+            };
+
+            // Act
+            configurationManager.ConfigureFromString(_hmacModifiedConfig, HmacConfigurationFormat.Xml);
+            ICollection<string> keys = configurationManager.GetAllKeys();
+
+            // Assert
+            Assert.IsNotNull(keys);
+            Assert.IsTrue(expectedKeys.All(keys.Contains));
+        }
+
+        [TestMethod]
+        public void ShouldTryGetConfiguration()
+        {
+            // Arrange
+            HmacConfigurationManager configurationManager = new HmacConfigurationManager();
+            const string existingConfigKey = "TestConfiguration";
+            const string nonExistingConfigKey = "Wrong_TestConfiguration";
+
+            // Act
+            configurationManager.ConfigureFromString(_hmacModifiedConfig, HmacConfigurationFormat.Xml);
+
+            IHmacConfiguration existingConfig;
+            IHmacConfiguration nonExistingConfig;
+
+            bool existingConfigFound = configurationManager.TryGet(existingConfigKey, out existingConfig);
+            bool nonExistingConfigFound = configurationManager.TryGet(nonExistingConfigKey, out nonExistingConfig);
+
+            // Assert
+            Assert.IsNotNull(existingConfig);
+            Assert.IsNull(nonExistingConfig);
+            Assert.IsTrue(existingConfigFound);
+            Assert.IsFalse(nonExistingConfigFound);
+        }
+
+        [TestMethod]
+        public void ShouldContainsConfiguration()
+        {
+            // Arrange
+            HmacConfigurationManager configurationManager = new HmacConfigurationManager();
+            const string existingConfigKey = "TestConfiguration";
+            const string nonExistingConfigKey = "Wrong_TestConfiguration";
+
+            // Act
+            configurationManager.ConfigureFromString(_hmacModifiedConfig, HmacConfigurationFormat.Xml);
+
+            bool existingConfigFound = configurationManager.Contains(existingConfigKey);
+            bool nonExistingConfigFound = configurationManager.Contains(nonExistingConfigKey);
+
+            // Assert
+            Assert.IsTrue(existingConfigFound);
+            Assert.IsFalse(nonExistingConfigFound);
         }
 
         private void AssertConfiguration(IHmacConfiguration expected, IHmacConfiguration actual)

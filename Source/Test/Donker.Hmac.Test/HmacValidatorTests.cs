@@ -46,6 +46,25 @@ namespace Donker.Hmac.Test
         }
 
         [TestMethod]
+        public void ShouldAddWwwAuthenticateHeader()
+        {
+            // Arrange
+            const string headerValue = "HMAC_TEST";
+            IHmacConfiguration configuration = CreateConfiguration();
+            HttpResponseBase response = CreateResponse(string.Empty);
+            HmacSigner signer = new HmacSigner(configuration, _keyRepository);
+            HmacValidator validator = new HmacValidator(configuration, signer);
+
+            // Act
+            validator.AddWwwAuthenticateHeader(response, headerValue);
+            string actualHeaderValue = response.Headers["WWW-Authenticate"];
+
+            // Assert
+            Assert.IsNotNull(actualHeaderValue);
+            Assert.AreEqual(headerValue, actualHeaderValue);
+        }
+
+        [TestMethod]
         public void ShouldSucceedValidation()
         {
             // Arrange
@@ -185,6 +204,35 @@ namespace Donker.Hmac.Test
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.ErrorMessage);
             Assert.AreEqual(result.ResultCode, HmacValidationResultCode.KeyMissing);
+        }
+
+        [TestMethod]
+        public void ShouldFailValidationDueToMissingBodyHash()
+        {
+            // Arrange
+            IHmacConfiguration configuration = CreateConfiguration();
+            IHmacSigner signer = new HmacSigner(configuration, _keyRepository);
+            HmacValidator validator = new HmacValidator(configuration, signer);
+            DateTimeOffset dateTimeOffset = DateTimeOffset.UtcNow.AddMinutes(-3);
+            string dateString = dateTimeOffset.ToString(HmacConstants.DateHeaderFormat, _dateHeaderCulture);
+            HttpRequestBase request = CreateRequest(dateString);
+            HmacSignatureData signatureData = signer.GetSignatureDataFromHttpRequest(request);
+            string signature = signer.CreateSignature(signatureData);
+
+            request.Headers[HmacConstants.AuthorizationHeaderName] = string.Format(
+                HmacConstants.AuthorizationHeaderFormat,
+                configuration.AuthorizationScheme,
+                signature);
+
+            request.Headers.Remove(HmacConstants.ContentMd5HeaderName);
+
+            // Act
+            HmacValidationResult result = validator.ValidateHttpRequest(request);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.ErrorMessage);
+            Assert.AreEqual(result.ResultCode, HmacValidationResultCode.BodyHashMissing);
         }
 
         [TestMethod]
@@ -467,6 +515,24 @@ namespace Donker.Hmac.Test
             mockRequest.Setup(r => r.Url).Returns(new Uri(Url));
             mockRequest.Setup(r => r.ContentType).Returns(ContentType);
             return mockRequest.Object;
+        }
+
+        private HttpResponseBase CreateResponse(string dateString)
+        {
+            NameValueCollection headers = new NameValueCollection
+            {
+                [HmacConstants.ContentMd5HeaderName] = _base64Md5Hash,
+                [HmacConstants.DateHeaderName] = dateString,
+                ["X-Auth-User"] = _keyRepository.Username,
+                ["X-Custom-Test-Header-1"] = "Test1",
+                ["X-Custom-Test-Header-2"] = "Test2"
+            };
+
+            Mock<HttpResponseBase> mockResponse = new Mock<HttpResponseBase>();
+            mockResponse.Setup(r => r.OutputStream).Returns(_bodyStream);
+            mockResponse.Setup(r => r.Headers).Returns(headers);
+            mockResponse.Setup(r => r.ContentType).Returns(ContentType);
+            return mockResponse.Object;
         }
     }
 }

@@ -1,6 +1,4 @@
 ﻿using System.IO;
-using System.Runtime.Serialization.Json;
-using System.Web.Helpers;
 using System.Web.Mvc;
 using System.Web.Script.Serialization;
 using Donker.Hmac.ExampleServer.Models;

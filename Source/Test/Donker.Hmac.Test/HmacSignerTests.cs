@@ -204,7 +204,7 @@ namespace Donker.Hmac.Test
         }
 
         [TestMethod]
-        public void ShouldAddAuthorizationHeader()
+        public void ShouldSetAuthorizationHeader()
         {
             // Arrange
             const string signature = "TEST_SIGNATURE";
