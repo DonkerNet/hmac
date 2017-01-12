@@ -34,6 +34,10 @@ namespace Donker.Hmac.Signing
         /// Gets the <see cref="MD5"/> instance used for hashing the request body.
         /// </summary>
         protected MD5 Md5 { get; }
+        /// <summary>
+        /// Gets the encoding to use when converting string values to bytes during the signing process.
+        /// </summary>
+        protected Encoding SignatureEncoding { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HmacSigner"/> class using the specified configuration and key repository.
@@ -41,6 +45,7 @@ namespace Donker.Hmac.Signing
         /// <param name="configuration">The configuration used for signing.</param>
         /// <param name="keyRepository">The repository used for retrieving the key associated with the user.</param>
         /// <exception cref="ArgumentNullException">The configuration or key repository is null.</exception>
+        /// <exception cref="HmacConfigurationException">The configured signature encoding is invalid.</exception>
         public HmacSigner(IHmacConfiguration configuration, IHmacKeyRepository keyRepository)
         {
             if (configuration == null)
@@ -52,6 +57,15 @@ namespace Donker.Hmac.Signing
             HmacKeyRepository = keyRepository;
             DateHeaderCulture = new CultureInfo(HmacConstants.DateHeaderCulture);
             Md5 = MD5.Create();
+
+            try
+            {
+                SignatureEncoding = Encoding.GetEncoding(configuration.SignatureEncoding);
+            }
+            catch (ArgumentException ex)
+            {
+                throw new HmacConfigurationException("The configured signature encoding is invalid.", ex);
+            }
         }
 
         /// <summary>
@@ -119,8 +133,8 @@ namespace Donker.Hmac.Signing
                 headerString,
                 requestUri);
 
-            byte[] keyBytes = HmacConfiguration.SignatureEncoding.GetBytes(signatureData.Key);
-            byte[] representationBytes = HmacConfiguration.SignatureEncoding.GetBytes(representation);
+            byte[] keyBytes = SignatureEncoding.GetBytes(signatureData.Key);
+            byte[] representationBytes = SignatureEncoding.GetBytes(representation);
 
             HMAC hmac;
             
@@ -327,14 +341,14 @@ namespace Donker.Hmac.Signing
         }
 
         /// <summary>
-        /// Adds the HTTP Authorization header with the signature to the request.
+        /// Sets the HTTP Authorization header with the signature for the request.
         /// </summary>
         /// <param name="request">The request in which to set the authorization.</param>
         /// <param name="signature">The signature to add to the header.</param>
         /// <exception cref="ArgumentNullException">The request is null.</exception>
         /// <exception cref="ArgumentException">The request's header collection is null.</exception>
         /// <exception cref="HmacConfigurationException">One or more of the configuration parameters are invalid.</exception>
-        public void AddAuthorizationHeader(HttpRequestMessage request, string signature)
+        public void SetAuthorizationHeader(HttpRequestMessage request, string signature)
         {
             if (request == null)
                 throw new ArgumentNullException(nameof(request), "The request cannot be null.");
@@ -352,14 +366,14 @@ namespace Donker.Hmac.Signing
         }
 
         /// <summary>
-        /// Adds the HTTP Authorization header with the signature to the request.
+        /// Sets the HTTP Authorization header with the signature for the request.
         /// </summary>
         /// <param name="request">The request in which to set the authorization.</param>
         /// <param name="signature">The signature to add to the header.</param>
         /// <exception cref="ArgumentNullException">The request is null.</exception>
         /// <exception cref="ArgumentException">The request's header collection is null.</exception>
         /// <exception cref="HmacConfigurationException">One or more of the configuration parameters are invalid.</exception>
-        public void AddAuthorizationHeader(HttpRequestBase request, string signature)
+        public void SetAuthorizationHeader(HttpRequestBase request, string signature)
         {
             if (request == null)
                 throw new ArgumentNullException(nameof(request), "The request cannot be null.");

@@ -43,7 +43,7 @@ namespace Donker.Hmac.Configuration.Test
                 UserHeaderName = "X-Test-User",
                 AuthorizationScheme = "TEST",
                 SignatureDataSeparator = "_",
-                SignatureEncoding = Encoding.UTF32,
+                SignatureEncoding = "UTF-32",
                 HmacAlgorithm = "HMACSHA256",
                 MaxRequestAge = TimeSpan.FromMinutes(2),
                 SignRequestUri = false,
@@ -53,7 +53,7 @@ namespace Donker.Hmac.Configuration.Test
 
             // Act
             configurationManager.ConfigureFromXmlAppConfig();
-            HmacConfiguration configuration = configurationManager.Get(expectedConfiguration.Name);
+            IHmacConfiguration configuration = configurationManager.Get(expectedConfiguration.Name);
 
             // Assert
             AssertConfiguration(expectedConfiguration, configuration);
@@ -70,7 +70,7 @@ namespace Donker.Hmac.Configuration.Test
                 UserHeaderName = "X-Test-User",
                 AuthorizationScheme = "TEST",
                 SignatureDataSeparator = "_",
-                SignatureEncoding = Encoding.UTF32,
+                SignatureEncoding = "UTF-32",
                 HmacAlgorithm = "HMACSHA256",
                 MaxRequestAge = TimeSpan.FromMinutes(2),
                 SignRequestUri = false,
@@ -80,7 +80,7 @@ namespace Donker.Hmac.Configuration.Test
 
             // Act
             configurationManager.ConfigureFromFile("Hmac.config");
-            HmacConfiguration configuration = configurationManager.Get(expectedConfiguration.Name);
+            IHmacConfiguration configuration = configurationManager.Get(expectedConfiguration.Name);
 
             // Assert
             AssertConfiguration(expectedConfiguration, configuration);
@@ -97,15 +97,15 @@ namespace Donker.Hmac.Configuration.Test
 
             // Act
             configurationManager.ConfigureFromFileAndWatch("Hmac.config");
-            HmacConfiguration configuration = configurationManager.Get(name);
+            IHmacConfiguration configuration = configurationManager.Get(name);
             using (StreamWriter writer = new StreamWriter("Hmac.config", false, Encoding.UTF8))
             {
                 writer.Write(_hmacModifiedConfig);
                 writer.Flush();
             }
             Thread.Sleep(1500);
-            HmacConfiguration modifiedConfiguration = configurationManager.Get(name);
-            HmacConfiguration defaultConfiguration = configurationManager.Get(configurationManager.DefaultConfigurationKey);
+            IHmacConfiguration modifiedConfiguration = configurationManager.Get(name);
+            IHmacConfiguration defaultConfiguration = configurationManager.Get(configurationManager.DefaultConfigurationKey);
             using (StreamWriter writer = new StreamWriter("Hmac.config", false, Encoding.UTF8))
             {
                 writer.Write(_hmacConfig);
@@ -134,7 +134,7 @@ namespace Donker.Hmac.Configuration.Test
                 UserHeaderName = "X-Test-User",
                 AuthorizationScheme = "TEST",
                 SignatureDataSeparator = "_",
-                SignatureEncoding = Encoding.UTF32,
+                SignatureEncoding = "UTF-32",
                 HmacAlgorithm = "HMACSHA256",
                 MaxRequestAge = TimeSpan.FromMinutes(2),
                 SignRequestUri = false,
@@ -144,7 +144,7 @@ namespace Donker.Hmac.Configuration.Test
             
             // Act
             configurationManager.ConfigureFromString(_hmacConfig, HmacConfigurationFormat.Xml);
-            HmacConfiguration configuration = configurationManager.Get(expectedConfiguration.Name);
+            IHmacConfiguration configuration = configurationManager.Get(expectedConfiguration.Name);
 
             // Assert
             AssertConfiguration(expectedConfiguration, configuration);
@@ -161,7 +161,7 @@ namespace Donker.Hmac.Configuration.Test
                 UserHeaderName = "X-Auth-User",
                 AuthorizationScheme = "HMAC",
                 SignatureDataSeparator = "\n",
-                SignatureEncoding = Encoding.UTF8,
+                SignatureEncoding = "UTF-8",
                 HmacAlgorithm = "HMACSHA512",
                 MaxRequestAge = TimeSpan.FromMinutes(5),
                 SignRequestUri = true,
@@ -170,15 +170,15 @@ namespace Donker.Hmac.Configuration.Test
             };
 
             // Act
-            HmacConfiguration defaultConfigByKey = configurationManager.Get(configurationManager.DefaultConfigurationKey);
-            HmacConfiguration defaultConfig = configurationManager.GetDefault();
+            IHmacConfiguration defaultConfigByKey = configurationManager.Get(configurationManager.DefaultConfigurationKey);
+            IHmacConfiguration defaultConfig = configurationManager.GetDefault();
 
             // Assert
             AssertConfiguration(expectedConfiguration, defaultConfigByKey);
             AssertConfiguration(expectedConfiguration, defaultConfig);
         }
 
-        private void AssertConfiguration(HmacConfiguration expected, HmacConfiguration actual)
+        private void AssertConfiguration(IHmacConfiguration expected, IHmacConfiguration actual)
         {
             if (expected == null)
             {

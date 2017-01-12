@@ -292,6 +292,40 @@ namespace Donker.Hmac.Validation
             return first.SequenceEqual(second);
         }
 
+        /// <summary>
+        /// Adds an HTTP WWW-Authenticate header to the response.
+        /// </summary>
+        /// <param name="response">The response in which to set the header.</param>
+        /// <param name="value">The value to add to the header.</param>
+        /// <exception cref="ArgumentNullException">The response is null.</exception>
+        /// <exception cref="ArgumentException">The response's header collection is null.</exception>
+        public void AddWwwAuthenticateHeader(HttpResponseMessage response, string value)
+        {
+            if (response == null)
+                throw new ArgumentNullException(nameof(response), "The response cannot be null.");
+            if (response.Headers == null)
+                throw new ArgumentException("The response's header collection cannot be null.");
+
+            response.Headers.Add(HmacConstants.WwwAuthenticateHeaderName, value);
+        }
+
+        /// <summary>
+        /// Adds an HTTP WWW-Authenticate header to the response.
+        /// </summary>
+        /// <param name="response">The response in which to set the header.</param>
+        /// <param name="value">The value to add to the header.</param>
+        /// <exception cref="ArgumentNullException">The response is null.</exception>
+        /// <exception cref="ArgumentException">The response's header collection is null.</exception>
+        public void AddWwwAuthenticateHeader(HttpResponseBase response, string value)
+        {
+            if (response == null)
+                throw new ArgumentNullException(nameof(response), "The response cannot be null.");
+            if (response.Headers == null)
+                throw new ArgumentException("The response's header collection cannot be null.");
+
+            response.Headers.Add(HmacConstants.WwwAuthenticateHeaderName, value);
+        }
+
         private HmacValidationResult ValidateHttpRequest(HmacRequestWrapper request, HmacSignatureData signatureData)
         {
             if (string.IsNullOrEmpty(HmacConfiguration.AuthorizationScheme))
@@ -318,7 +352,11 @@ namespace Donker.Hmac.Validation
 
             // If configured, an MD5 hash of the body is generated and compared with the Content-MD5 header value to check if the body hasn't been altered
             if (HmacConfiguration.ValidateContentMd5 && !IsValidContentMd5(signatureData.ContentMd5, request.Content))
+            {
+                if (string.IsNullOrEmpty(signatureData.ContentMd5))
+                    return new HmacValidationResult(HmacValidationResultCode.BodyHashMissing, "The MD5 body hash was not found.");
                 return new HmacValidationResult(HmacValidationResultCode.BodyHashMismatch, "The body content differs.");
+            }
 
             // The Authorization header is always required and should contain the scheme and signature
 

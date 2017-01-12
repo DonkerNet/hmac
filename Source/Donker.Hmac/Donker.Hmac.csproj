@@ -53,6 +53,7 @@
     </Compile>
     <Compile Include="Configuration\HmacConfiguration.cs" />
     <Compile Include="Configuration\HmacConfigurationException.cs" />
+    <Compile Include="Configuration\ICloneableConfiguration.cs" />
     <Compile Include="Configuration\IHmacConfiguration.cs" />
     <Compile Include="Helpers\ICollectionExtensions.cs" />
     <Compile Include="Helpers\StringExtensions.cs" />

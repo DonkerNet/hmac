@@ -8,7 +8,7 @@ namespace Donker.Hmac.ExampleServer
 {
     public class MvcApplication : HttpApplication
     {
-        private IConfigurationManager<HmacConfiguration, string> _hmacConfigurationManager;
+        private IHmacConfigurationManager _hmacConfigurationManager;
 
         protected void Application_Start()
         {

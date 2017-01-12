@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 
 namespace Donker.Hmac.Configuration
 {
@@ -7,7 +8,7 @@ namespace Donker.Hmac.Configuration
     /// </summary>
     /// <typeparam name="TConfiguration">The type of configurations that are managed.</typeparam>
     /// <typeparam name="TKey">The key used to retrieve a configuration.</typeparam>
-    public interface IConfigurationManager<out TConfiguration, in TKey>
+    public interface IConfigurationManager<TConfiguration, TKey>
     {
         /// <summary>
         /// Gets the default configuration.
@@ -15,11 +16,29 @@ namespace Donker.Hmac.Configuration
         /// <returns>A new configuration instance.</returns>
         TConfiguration GetDefault();
         /// <summary>
+        /// Gets a key collection of all the configurations that are available.
+        /// </summary>
+        /// <returns>A collection of keys.</returns>
+        ICollection<TKey> GetAllKeys();
+        /// <summary>
+        /// Tries to get the configuration for the specified key.
+        /// </summary>
+        /// <param name="key">The key to retrieve the configuration for.</param>
+        /// <param name="configuration">The retrieved configuration instance.</param>
+        /// <returns><c>true</c> if found; otherwise, <c>false</c>.</returns>
+        bool TryGet(TKey key, out TConfiguration configuration);
+        /// <summary>
         /// Gets the configuration for the specified key.
         /// </summary>
         /// <param name="key">The key to retrieve the configuration for.</param>
         /// <returns>A new configuration instance.</returns>
         TConfiguration Get(TKey key);
+        /// <summary>
+        /// Checks if a configuration exists for the specified key.
+        /// </summary>
+        /// <param name="key">The key of the configuration to find.</param>
+        /// <returns><c>true</c> if found; otherwise, <c>false</c>.</returns>
+        bool Contains(TKey key);
         /// <summary>
         /// Loads all configurations from the specified string.
         /// </summary>

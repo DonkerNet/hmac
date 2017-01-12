@@ -13,13 +13,13 @@ namespace Donker.Hmac.ExampleClient
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
             // Retrieve the server URL
             string serverBaseUrl = ConfigurationManager.AppSettings["ServerBaseUrl"];
 
             // Setup the signer
-            IConfigurationManager<HmacConfiguration, string> configurationManager = new HmacConfigurationManager();
+            IHmacConfigurationManager configurationManager = new HmacConfigurationManager();
             configurationManager.ConfigureFromFile("Hmac.config");
             IHmacConfiguration configuration = configurationManager.Get("Example");
             IHmacKeyRepository keyRepository = new SingleHmacKeyRepository("FollowTheWhiteRabbit");

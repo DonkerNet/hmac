@@ -14,6 +14,10 @@
         /// </summary>
         public const string AuthorizationHeaderName = "Authorization";
         /// <summary>
+        /// The name of the HTTP WWW-Authenticate header: "WWW-Authenticate".
+        /// </summary>
+        public const string WwwAuthenticateHeaderName = "WWW-Authenticate";
+        /// <summary>
         /// The name of the HTTP Date header: "Date".
         /// </summary>
         public const string DateHeaderName = "Date";

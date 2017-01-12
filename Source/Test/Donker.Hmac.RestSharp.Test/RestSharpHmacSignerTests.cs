@@ -84,7 +84,7 @@ namespace Donker.Hmac.RestSharp.Test
                 UserHeaderName = "X-Auth-User",
                 AuthorizationScheme = "HMAC",
                 SignatureDataSeparator = "\n",
-                SignatureEncoding = Encoding.UTF8,
+                SignatureEncoding = "UTF-8",
                 HmacAlgorithm = "HMACSHA512",
                 MaxRequestAge = TimeSpan.FromMinutes(5),
                 SignRequestUri = true,

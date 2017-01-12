@@ -107,7 +107,7 @@ namespace Donker.Hmac.Test
         public void ShouldCreateMd5Hash()
         {
             // Arrange
-            IHmacConfiguration configuration = new HmacConfiguration { SignatureEncoding = Encoding.UTF8 };
+            IHmacConfiguration configuration = new HmacConfiguration { SignatureEncoding = "UTF-8" };
             HmacSigner signer = new HmacSigner(configuration, _keyRepository);
 
             // Act
@@ -131,7 +131,7 @@ namespace Donker.Hmac.Test
         public void ShouldCreateBase64Md5Hash()
         {
             // Arrange
-            IHmacConfiguration configuration = new HmacConfiguration { SignatureEncoding = Encoding.UTF8 };
+            IHmacConfiguration configuration = new HmacConfiguration { SignatureEncoding = "UTF-8" };
             HmacSigner signer = new HmacSigner(configuration, _keyRepository);
 
             // Act
@@ -152,7 +152,7 @@ namespace Donker.Hmac.Test
         public void ShouldCreateCanonicalizedHeaderString()
         {
             // Arrange
-            IHmacConfiguration configuration = new HmacConfiguration { SignatureDataSeparator = "\n" };
+            IHmacConfiguration configuration = new HmacConfiguration { SignatureEncoding = "UTF-8", SignatureDataSeparator = "\n" };
             HmacSigner signer = new HmacSigner(configuration, _keyRepository);
             NameValueCollection headers = new NameValueCollection
             {
@@ -175,7 +175,7 @@ namespace Donker.Hmac.Test
         public void ShouldCreateCanonicalizedUriString()
         {
             // Arrange
-            IHmacConfiguration configuration = new HmacConfiguration();
+            IHmacConfiguration configuration = new HmacConfiguration { SignatureEncoding = "UTF-8" };
             HmacSigner signer = new HmacSigner(configuration, _keyRepository);
 
             const string uriString = "  HTTP://WWW.EXAMPLE.DOMAIN/Test?Key=Value  ";
@@ -213,7 +213,7 @@ namespace Donker.Hmac.Test
             HmacSigner signer = new HmacSigner(configuration, _keyRepository);
 
             // Act
-            signer.AddAuthorizationHeader(request, signature);
+            signer.SetAuthorizationHeader(request, signature);
             string headerValue = request.Headers["Authorization"];
 
             // Assert
@@ -228,7 +228,7 @@ namespace Donker.Hmac.Test
                 UserHeaderName = "X-Auth-User",
                 AuthorizationScheme = "HMAC",
                 SignatureDataSeparator = "\n",
-                SignatureEncoding = Encoding.UTF8,
+                SignatureEncoding = "UTF-8",
                 HmacAlgorithm = "HMACSHA512",
                 MaxRequestAge = TimeSpan.FromMinutes(5),
                 SignRequestUri = true,

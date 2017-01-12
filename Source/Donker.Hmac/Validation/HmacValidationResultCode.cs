@@ -41,5 +41,43 @@
         /// The signatures do not match.
         /// </summary>
         public const int SignatureMismatch = 8;
+        /// <summary>
+        /// The Content-MD5 body hash was expected but not present in the headers.
+        /// </summary>
+        public const int BodyHashMissing = 9;
+
+        /// <summary>
+        /// Gets the text representation of a result code.
+        /// </summary>
+        /// <param name="resultCode">The result code to translate.</param>
+        /// <returns>The reason phrase as a <see cref="string"/>.</returns>
+        public static string GetReasonPhrase(int resultCode)
+        {
+            switch (resultCode)
+            {
+                case Ok:
+                    return "OK";
+                case DateMissing:
+                    return "Date Missing";
+                case DateInvalid:
+                    return "Date Invalid";
+                case UsernameMissing:
+                    return "Username Missing";
+                case KeyMissing:
+                    return "Key Missing";
+                case BodyHashMismatch:
+                    return "Body Hash Mismatch";
+                case AuthorizationMissing:
+                    return "Authorization Missing";
+                case AuthorizationInvalid:
+                    return "Authorization Invalid";
+                case SignatureMismatch:
+                    return "Signature Mismatch";
+                case BodyHashMissing:
+                    return "Body Hash Missing";
+                default:
+                    return null;
+            }
+        }
     }
 }

@@ -9,10 +9,10 @@ namespace Donker.Hmac.ExampleServer.Attributes
 {
     public class HmacAuthorizeAttribute : FilterAttribute, IAuthorizationFilter
     {
-        private readonly IConfigurationManager<HmacConfiguration, string> _configurationManager;
+        private readonly IHmacConfigurationManager _configurationManager;
         private readonly IHmacKeyRepository _keyRepository;
 
-        public HmacAuthorizeAttribute(IConfigurationManager<HmacConfiguration, string> configurationManager)
+        public HmacAuthorizeAttribute(IHmacConfigurationManager configurationManager)
         {
             _configurationManager = configurationManager;
             _keyRepository = new SingleUserHmacKeyRepository("Neo", "FollowTheWhiteRabbit");
@@ -33,6 +33,8 @@ namespace Donker.Hmac.ExampleServer.Attributes
                 return;
 
             HttpResponseBase response = filterContext.HttpContext.Response;
+            validator.AddWwwAuthenticateHeader(response, configuration.AuthorizationScheme);
+            response.Headers.Add("X-Auth-ErrorCode", result.ResultCode.ToString());
             response.StatusCode = (int)HttpStatusCode.Unauthorized;
             response.Write(result.ErrorMessage);
             response.End();

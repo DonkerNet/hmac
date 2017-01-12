@@ -74,16 +74,16 @@ namespace Donker.Hmac.Signing
         /// <returns>The canonicalized headers as a single <see cref="string"/>.</returns>
         string CreateCanonicalizedHeadersString(NameValueCollection headers);
         /// <summary>
-        /// Adds the HTTP Authorization header with the signature to the request.
+        /// Sets the HTTP Authorization header with the signature for the request.
         /// </summary>
         /// <param name="request">The request in which to set the authorization.</param>
         /// <param name="signature">The signature to add to the header.</param>
-        void AddAuthorizationHeader(HttpRequestMessage request, string signature);
+        void SetAuthorizationHeader(HttpRequestMessage request, string signature);
         /// <summary>
-        /// Adds the HTTP Authorization header with the signature to the request.
+        /// Sets the HTTP Authorization header with the signature for the request.
         /// </summary>
         /// <param name="request">The request in which to set the authorization.</param>
         /// <param name="signature">The signature to add to the header.</param>
-        void AddAuthorizationHeader(HttpRequestBase request, string signature);
+        void SetAuthorizationHeader(HttpRequestBase request, string signature);
     }
 }

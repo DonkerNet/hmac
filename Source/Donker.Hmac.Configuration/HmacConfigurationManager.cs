@@ -11,7 +11,7 @@ namespace Donker.Hmac.Configuration
     /// <summary>
     /// A configuration manager class that allows for loading multiple HMAC configurations from an XML file.
     /// </summary>
-    public sealed class HmacConfigurationManager : ConfigurationManagerBase<HmacConfiguration, string>
+    public sealed class HmacConfigurationManager : ConfigurationManagerBase<IHmacConfiguration, string>, IHmacConfigurationManager
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="HmacConfigurationManager"/> class.
@@ -25,19 +25,19 @@ namespace Donker.Hmac.Configuration
         /// Creates a new configuration instance.
         /// </summary>
         /// <returns>A new configuration instance.</returns>
-        protected override HmacConfiguration CreateConfigurationInstance() => new HmacConfiguration();
+        protected override IHmacConfiguration CreateConfigurationInstance() => new HmacConfiguration();
 
         /// <summary>
         /// Sets the default values for a configuration object.
         /// </summary>
         /// <param name="configuration">The configuration to set the values for.</param>
-        protected override void SetDefaultConfigurationValues(HmacConfiguration configuration)
+        protected override void SetDefaultConfigurationValues(IHmacConfiguration configuration)
         {
             configuration.Name = DefaultConfigurationKey;
             configuration.UserHeaderName = "X-Auth-User";
             configuration.AuthorizationScheme = "HMAC";
             configuration.SignatureDataSeparator = "\n";
-            configuration.SignatureEncoding = Encoding.UTF8;
+            configuration.SignatureEncoding = "UTF-8";
             configuration.HmacAlgorithm = "HMACSHA512";
             configuration.MaxRequestAge = TimeSpan.FromMinutes(5);
             configuration.SignRequestUri = true;
@@ -50,7 +50,7 @@ namespace Donker.Hmac.Configuration
         /// </summary>
         /// <param name="rootElement">The XML root element of the configuration section.</param>
         /// <returns>A dictionary of configurations.</returns>
-        protected override IEnumerable<KeyValuePair<string, HmacConfiguration>> ReadXmlAppConfig(XmlElement rootElement) => ReadXml(rootElement);
+        protected override IEnumerable<KeyValuePair<string, IHmacConfiguration>> ReadXmlAppConfig(XmlElement rootElement) => ReadXml(rootElement);
 
         /// <summary>
         /// Reads the configurations from an XML file.
@@ -58,7 +58,7 @@ namespace Donker.Hmac.Configuration
         /// <param name="fileStream">The stream to the file to read the configurations from.</param>
         /// <param name="fileInfo">Information about the file that is currently opened for reading.</param>
         /// <returns>A dictionary of configurations.</returns>
-        protected override IEnumerable<KeyValuePair<string, HmacConfiguration>> ReadConfigurationFile(Stream fileStream, FileInfo fileInfo)
+        protected override IEnumerable<KeyValuePair<string, IHmacConfiguration>> ReadConfigurationFile(Stream fileStream, FileInfo fileInfo)
         {
             // This configuration manager implementation only supports XML
 
@@ -84,7 +84,7 @@ namespace Donker.Hmac.Configuration
         /// <param name="format">Specified in which format the config is written. Currently only 'XML' is allowed.</param>
         /// <returns>A dictionary of configurations.</returns>
         /// <exception cref="ArgumentException">The specified format is not XML.</exception>
-        protected override IEnumerable<KeyValuePair<string, HmacConfiguration>> ReadConfigurationString(string config, string format)
+        protected override IEnumerable<KeyValuePair<string, IHmacConfiguration>> ReadConfigurationString(string config, string format)
         {
             if (!string.Equals(format, HmacConfigurationFormat.Xml, StringComparison.OrdinalIgnoreCase))
                 throw new ArgumentException("The configuration manager only supports XML as the format.", nameof(format));
@@ -107,9 +107,9 @@ namespace Donker.Hmac.Configuration
             return ReadXml(doc.DocumentElement);
         }
 
-        private IEnumerable<KeyValuePair<string, HmacConfiguration>> ReadXml(XmlElement rootElement)
+        private IEnumerable<KeyValuePair<string, IHmacConfiguration>> ReadXml(XmlElement rootElement)
         {
-            IDictionary<string, HmacConfiguration> configurations = new Dictionary<string, HmacConfiguration>();
+            IDictionary<string, IHmacConfiguration> configurations = new Dictionary<string, IHmacConfiguration>();
 
             XmlNode configurationsNode = rootElement.ChildNodes
                 .Cast<XmlNode>()
@@ -122,7 +122,7 @@ namespace Donker.Hmac.Configuration
                     if (addNode.Name != "configuration")
                         continue;
 
-                    HmacConfiguration configuration = CreateConfigurationInstance();
+                    IHmacConfiguration configuration = CreateConfigurationInstance();
                     SetDefaultConfigurationValues(configuration);
 
                     if (addNode.Attributes != null)
@@ -156,15 +156,7 @@ namespace Donker.Hmac.Configuration
                                     }
                                     break;
                                 case "signatureEncoding":
-                                    try
-                                    {
-                                        configuration.SignatureEncoding = Encoding.GetEncoding(value);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        OnConfigurationError("Configuration attribute 'signatureEncoding' does not have a valid name.", ex);
-                                        return null;
-                                    }
+                                    configuration.SignatureEncoding = value;
                                     break;
                                 case "hmacAlgorithm":
                                     configuration.HmacAlgorithm = value;

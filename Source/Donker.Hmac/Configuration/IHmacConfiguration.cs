@@ -7,7 +7,7 @@ namespace Donker.Hmac.Configuration
     /// <summary>
     /// The configuration used for signing and validating requests.
     /// </summary>
-    public interface IHmacConfiguration
+    public interface IHmacConfiguration : ICloneableConfiguration
     {
         /// <summary>
         /// Gets or sets the name of the configuration.
@@ -28,7 +28,7 @@ namespace Donker.Hmac.Configuration
         /// <summary>
         /// Gets or sets the encoding to use when converting string values to bytes during the signing process.
         /// </summary>
-        Encoding SignatureEncoding { get; set; }
+        string SignatureEncoding { get; set; }
         /// <summary>
         /// Gets or sets the name of the HMAC algorithm to use for signing.
         /// </summary>

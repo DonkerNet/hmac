@@ -8,7 +8,7 @@ namespace Donker.Hmac.Configuration
     /// The configuration used for signing and validating requests.
     /// </summary>
     [Serializable]
-    public class HmacConfiguration : IHmacConfiguration, ICloneable
+    public class HmacConfiguration : IHmacConfiguration
     {
         /// <summary>
         /// Gets or sets the name of the configuration.
@@ -29,7 +29,7 @@ namespace Donker.Hmac.Configuration
         /// <summary>
         /// Gets or sets the encoding to use when converting string values to bytes during the signing process.
         /// </summary>
-        public Encoding SignatureEncoding { get; set; }
+        public string SignatureEncoding { get; set; }
         /// <summary>
         /// Gets or sets the name of the HMAC algorithm to use for signing.
         /// </summary>
@@ -52,10 +52,10 @@ namespace Donker.Hmac.Configuration
         public List<string> Headers { get; set; }
 
         /// <summary>
-        /// Creates a new <see cref="HmacConfiguration"/> object that is a copy of the current instance.
+        /// Creates a new <see cref="HmacConfiguration"/> object that is a copy of the current instance and can be modified without affecting the original.
         /// </summary>
         /// <returns>
-        /// A new <see cref="HmacConfiguration"/> object that is a copy of this instance.
+        /// A new <see cref="HmacConfiguration"/> object that is a copy of this instance and can be modified without affecting the original.
         /// </returns>
         public HmacConfiguration Clone()
         {
@@ -79,11 +79,11 @@ namespace Donker.Hmac.Configuration
         }
 
         /// <summary>
-        /// Creates a new <see cref="HmacConfiguration"/> object that is a copy of the current instance.
+        /// Creates a new <see cref="HmacConfiguration"/> object that is a copy of the current instance and can be modified without affecting the original.
         /// </summary>
         /// <returns>
-        /// A new <see cref="HmacConfiguration"/> object that is a copy of this instance.
+        /// A new <see cref="HmacConfiguration"/> object that is a copy of this instance and can be modified without affecting the original.
         /// </returns>
-        object ICloneable.Clone() => Clone();
+        object ICloneableConfiguration.Clone() => Clone();
     }
 }

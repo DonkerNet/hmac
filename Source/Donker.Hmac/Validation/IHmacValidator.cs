@@ -100,5 +100,17 @@ namespace Donker.Hmac.Validation
         /// <param name="second">The second signature to compare.</param>
         /// <returns><c>true</c> if equal; otherwise, <c>false</c>.</returns>
         bool IsValidSignature(byte[] first, byte[] second);
+        /// <summary>
+        /// Adds an HTTP WWW-Authenticate header to the response.
+        /// </summary>
+        /// <param name="response">The response in which to set the header.</param>
+        /// <param name="value">The value to add to the header.</param>
+        void AddWwwAuthenticateHeader(HttpResponseMessage response, string value);
+        /// <summary>
+        /// Adds an HTTP WWW-Authenticate header to the response.
+        /// </summary>
+        /// <param name="response">The response in which to set the header.</param>
+        /// <param name="value">The value to add to the header.</param>
+        void AddWwwAuthenticateHeader(HttpResponseBase response, string value);
     }
 }

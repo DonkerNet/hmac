@@ -12,7 +12,7 @@ namespace Donker.Hmac.Configuration
     /// <typeparam name="TConfiguration">The type of configurations that are managed.</typeparam>
     /// <typeparam name="TKey">The key used to retrieve a configuration.</typeparam>
     public abstract class ConfigurationManagerBase<TConfiguration, TKey> : IConfigurationManager<TConfiguration, TKey>, IDisposable
-        where TConfiguration : ICloneable // Configurations are cloned to prevent outside changes to the configuration in the dictionary
+        where TConfiguration : ICloneableConfiguration // Configurations are cloned to prevent outside changes to the configuration in the dictionary
     {
         private readonly object _syncRoot;
         private readonly string _sectionName;
@@ -97,13 +97,49 @@ namespace Donker.Hmac.Configuration
         }
 
         /// <summary>
-        /// Gets the configuration for the specified key.
+        /// Gets a key collection of all the configurations that are available.
+        /// </summary>
+        /// <returns>A collection of keys.</returns>
+        /// <exception cref="ObjectDisposedException">The configuration manager has been disposed of.</exception>
+        public ICollection<TKey> GetAllKeys()
+        {
+            ThrowExceptionWhenDisposed();
+
+            TKey[] keys;
+
+            lock (_syncRoot)
+            {
+                int keyCount = _configurations.Count;
+
+                if (keyCount == 0)
+                {
+                    keys = new[] { DefaultConfigurationKey };
+                }
+                else if (!_configurations.ContainsKey(DefaultConfigurationKey))
+                {
+                    keys = new TKey[++keyCount];
+                    keys[0] = DefaultConfigurationKey;
+                    _configurations.Keys.CopyTo(keys, 1);
+                }
+                else
+                {
+                    keys = new TKey[keyCount];
+                    _configurations.Keys.CopyTo(keys, 0);
+                }
+            }
+
+            return keys;
+        }
+
+        /// <summary>
+        /// Tries to get the configuration for the specified key.
         /// </summary>
         /// <param name="key">The key to retrieve the configuration for.</param>
-        /// <returns>A new configuration instance.</returns>
+        /// <param name="configuration">The retrieved configuration instance.</param>
+        /// <returns><c>true</c> if found; otherwise, <c>false</c>.</returns>
         /// <exception cref="ArgumentNullException">The key is null.</exception>
         /// <exception cref="ObjectDisposedException">The configuration manager has been disposed of.</exception>
-        public TConfiguration Get(TKey key)
+        public bool TryGet(TKey key, out TConfiguration configuration)
         {
             ThrowExceptionWhenDisposed();
 
@@ -111,7 +147,6 @@ namespace Donker.Hmac.Configuration
                 throw new ArgumentNullException(nameof(key), "The key cannot be null.");
 
             bool isFound = false;
-            TConfiguration configuration;
 
             lock (_syncRoot)
             {
@@ -132,13 +167,54 @@ namespace Donker.Hmac.Configuration
                 }
             }
 
-            if (!isFound)
+            return isFound;
+        }
+
+        /// <summary>
+        /// Gets the configuration for the specified key.
+        /// </summary>
+        /// <param name="key">The key to retrieve the configuration for.</param>
+        /// <returns>A new configuration instance.</returns>
+        /// <exception cref="ArgumentNullException">The key is null.</exception>
+        /// <exception cref="ObjectDisposedException">The configuration manager has been disposed of.</exception>
+        public TConfiguration Get(TKey key)
+        {
+            TConfiguration configuration;
+
+            if (!TryGet(key, out configuration))
             {
                 OnConfigurationError($"The configuration with key '{key}' was not found.", null);
                 return default(TConfiguration);
             }
 
             return configuration;
+        }
+
+        /// <summary>
+        /// Checks if a configuration exists for the specified key.
+        /// </summary>
+        /// <param name="key">The key of the configuration to find.</param>
+        /// <returns><c>true</c> if found; otherwise, <c>false</c>.</returns>
+        /// <exception cref="ArgumentNullException">The key is null.</exception>
+        /// <exception cref="ObjectDisposedException">The configuration manager has been disposed of.</exception>
+        public bool Contains(TKey key)
+        {
+            ThrowExceptionWhenDisposed();
+
+            if (Equals(key, null))
+                throw new ArgumentNullException(nameof(key), "The key cannot be null.");
+
+            bool isFound;
+
+            lock (_syncRoot)
+            {
+                isFound = _configurations.ContainsKey(key);
+
+                if (!isFound)
+                    isFound = _keyComparer?.Equals(key, DefaultConfigurationKey) ?? Equals(key, DefaultConfigurationKey);
+            }
+
+            return isFound;
         }
 
         /// <summary>
