@@ -107,23 +107,13 @@ namespace Donker.Hmac.RestSharp.Authenticators
         /// <returns>The request body as a <see cref="byte"/> array if found; otherwise <c>null</c>.</returns>
         protected virtual byte[] GetBodyBytes(IRestClient client, IRestRequest request)
         {
-            byte[] bodyBytes = null;
-            
-            Parameter bodyParameter = request.Parameters.GetBodyParameter(client.DefaultParameters);
+            string body = request.Body?.Value?.ToString();
 
-            if (bodyParameter != null)
-            {
-                bodyBytes = bodyParameter.Value as byte[];
+            if (body == null)
+                return null;
 
-                if (bodyBytes == null)
-                {
-                    Encoding encoding = client.Encoding ?? Encoding.UTF8;
-                    string body = Convert.ToString(bodyParameter.Value);
-                    bodyBytes = encoding.GetBytes(body);
-                }
-            }
-
-            return bodyBytes;
+            Encoding encoding = client.Encoding ?? Encoding.UTF8;
+            return encoding.GetBytes(body);
         }
 
         /// <summary>

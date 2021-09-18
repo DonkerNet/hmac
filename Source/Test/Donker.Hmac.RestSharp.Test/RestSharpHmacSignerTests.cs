@@ -69,7 +69,7 @@ namespace Donker.Hmac.RestSharp.Test
 
             // Act
             signer.AddAuthorizationHeader(request, signature);
-            Parameter param = request.Parameters.FirstOrDefault(p => p.Name == "Authorization");
+            var param = request.Parameters.FirstOrDefault(p => p.Name == "Authorization");
 
             // Assert
             Assert.IsNotNull(param);
@@ -95,29 +95,40 @@ namespace Donker.Hmac.RestSharp.Test
 
         private IRestRequest CreateRequest(IHmacConfiguration configuration, string dateString)
         {
+#pragma warning disable CS0618 // Obsolete warning for Parameter
             List<Parameter> parameters = new List<Parameter>
             {
-                new Parameter { Name = HmacConstants.DateHeaderName, Value = dateString, Type = ParameterType.HttpHeader },
-                new Parameter { Name = ContentType, Value = Body, Type = ParameterType.RequestBody },
-                new Parameter { Name = HmacConstants.ContentMd5HeaderName, Value = _base64Md5Hash, Type = ParameterType.HttpHeader },
-                new Parameter { Name = configuration.UserHeaderName, Value = _keyRepository.Username, Type = ParameterType.HttpHeader },
-                new Parameter { Name = "X-Custom-Test-Header-1", Value = "Test1", Type = ParameterType.HttpHeader },
-                new Parameter { Name = "X-Custom-Test-Header-2", Value = "Test2", Type = ParameterType.HttpHeader }
+                new Parameter(HmacConstants.DateHeaderName, dateString, ParameterType.HttpHeader),
+                new Parameter(string.Empty, Body, ContentType, ParameterType.RequestBody),
+                new Parameter(HmacConstants.ContentMd5HeaderName, _base64Md5Hash, ParameterType.HttpHeader),
+                new Parameter(configuration.UserHeaderName,  _keyRepository.Username, ParameterType.HttpHeader),
+                new Parameter("X-Custom-Test-Header-1", "Test1", ParameterType.HttpHeader),
+                new Parameter("X-Custom-Test-Header-2", "Test2", ParameterType.HttpHeader)
             };
-            
+#pragma warning restore CS0618 // Obsolete warning for Parameter
+
+#pragma warning disable CS0618 // Obsolete warning for RequestBody
+            RequestBody body = new RequestBody(ContentType, string.Empty, Body);
+#pragma warning restore CS0618 // Obsolete warning for RequestBody
+
             Mock<IRestRequest> mockRequest = new Mock<IRestRequest>();
             mockRequest.Setup(r => r.Method).Returns(Method.POST);
             mockRequest.Setup(r => r.Parameters).Returns(parameters);
+            mockRequest.Setup(r => r.Body).Returns(body);
             mockRequest
                 .Setup(r => r.AddParameter(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<ParameterType>()))
-                .Callback((string name, object value, ParameterType type) => parameters.Add(new Parameter { Name = name, Value = value, Type = type }));
+#pragma warning disable CS0618 // Obsolete warning for Parameter
+                .Callback((string name, object value, ParameterType type) => parameters.Add(new Parameter(name, value, type)));
+#pragma warning restore CS0618 // Obsolete warning for Parameter
             return mockRequest.Object;
         }
 
         private IRestClient CreateClient()
         {
             Mock<IRestClient> mockClient = new Mock<IRestClient>();
+#pragma warning disable CS0618 // Obsolete warning for Parameter
             mockClient.Setup(c => c.DefaultParameters).Returns(new List<Parameter>());
+#pragma warning restore CS0618 // Obsolete warning for Parameter
             mockClient.Setup(c => c.BuildUri(It.IsAny<IRestRequest>())).Returns(new Uri(Url));
             return mockClient.Object;
         }

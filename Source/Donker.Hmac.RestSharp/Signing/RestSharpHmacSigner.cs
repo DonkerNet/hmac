@@ -64,28 +64,27 @@ namespace Donker.Hmac.RestSharp.Signing
             // Get date if a maximum request age is configured
             if (HmacConfiguration.MaxRequestAge.HasValue)
             {
-                Parameter dateParameter = client.DefaultParameters.GetHeaderParameter(HmacConstants.DateHeaderName, request.Parameters);
+                var dateParameter = client.DefaultParameters.GetHeaderParameter(HmacConstants.DateHeaderName, request.Parameters);
                 if (dateParameter?.Value != null)
                     signatureData.Date = dateParameter.Value.ToString();
             }
 
             // Get content type
-            Parameter bodyParameter = request.Parameters.GetBodyParameter(client.DefaultParameters);
-            if (bodyParameter != null)
+            if (request.Body != null)
             {
-                signatureData.ContentType = bodyParameter.Name;
+                signatureData.ContentType = request.Body.ContentType;
 
                 // Get content MD5 if configured
                 if (HmacConfiguration.ValidateContentMd5)
                 {
-                    Parameter contentMd5Parameter = client.DefaultParameters.GetHeaderParameter(HmacConstants.ContentMd5HeaderName, request.Parameters);
+                    var contentMd5Parameter = client.DefaultParameters.GetHeaderParameter(HmacConstants.ContentMd5HeaderName, request.Parameters);
                     if (contentMd5Parameter?.Value != null)
                         signatureData.ContentMd5 = contentMd5Parameter.Value.ToString();
                 }
             }
 
             // Get username
-            Parameter usernameParameter = client.DefaultParameters.GetHeaderParameter(HmacConfiguration.UserHeaderName, request.Parameters);
+            var usernameParameter = client.DefaultParameters.GetHeaderParameter(HmacConfiguration.UserHeaderName, request.Parameters);
             if (usernameParameter?.Value != null)
                 signatureData.Username = usernameParameter.Value.ToString();
 

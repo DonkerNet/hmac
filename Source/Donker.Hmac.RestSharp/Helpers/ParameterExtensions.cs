@@ -5,47 +5,13 @@ using RestSharp;
 
 namespace Donker.Hmac.RestSharp.Helpers
 {
+#pragma warning disable CS0618 // Obsolete warning for Parameter
+
     /// <summary>
     /// Extension methods for RestSharp <see cref="Parameter"/> objects and collections.
     /// </summary>
     public static class ParameterExtensions
     {
-        /// <summary>
-        /// Searches for the body parameter in two RestSharp parameter collections. If one could not be found in the main source, the additional source will be searched.
-        /// </summary>
-        /// <param name="mainSource">The main source collection in which to search for the body parameter.</param>
-        /// <param name="additionalSource">Additional parameter collection to search through.</param>
-        /// <returns>The <see cref="Parameter"/> object if found; otherwise, <c>null</c>.</returns>
-        /// <exception cref="ArgumentNullException">The main source is null.</exception>
-        public static Parameter GetBodyParameter(this IEnumerable<Parameter> mainSource, IEnumerable<Parameter> additionalSource)
-        {
-            if (mainSource == null)
-                throw new ArgumentNullException(nameof(mainSource), "The main source cannot be null.");
-
-            Func<Parameter, bool> predicate = p => p != null
-                && p.Type == ParameterType.RequestBody;
-
-            Parameter result = mainSource.FirstOrDefault(predicate);
-            if (result != null)
-                return result;
-
-            if (additionalSource != null)
-            {
-                result = additionalSource.FirstOrDefault(predicate);
-                return result;
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Searches for the body parameter in a RestSharp parameter collection.
-        /// </summary>
-        /// <param name="source">The collection in which to search for the body parameter.</param>
-        /// <returns>The <see cref="Parameter"/> object if found; otherwise, <c>null</c>.</returns>
-        /// <exception cref="ArgumentNullException">The source is null.</exception>
-        public static Parameter GetBodyParameter(this IEnumerable<Parameter> source) => GetBodyParameter(source, null);
-
         /// <summary>
         /// Searches for a header parameter in two RestSharp parameter collections. If one could not be found in the main source, the additional source will be searched.
         /// </summary>
@@ -68,7 +34,7 @@ namespace Donker.Hmac.RestSharp.Helpers
                 && p.Type == ParameterType.HttpHeader
                 && string.Equals(p.Name, headerName, StringComparison.OrdinalIgnoreCase);
 
-            Parameter result = mainSource.FirstOrDefault(predicate);
+            var result = mainSource.FirstOrDefault(predicate);
             if (result != null)
                 return result;
 
@@ -141,5 +107,7 @@ namespace Donker.Hmac.RestSharp.Helpers
         /// <exception cref="ArgumentNullException">The source or header name is null.</exception>
         /// <exception cref="ArgumentException">The header name is empty.</exception>
         public static bool TryGetHeaderValues(this IEnumerable<Parameter> source, string headerName, out IEnumerable<string> results) => TryGetHeaderValues(source, headerName, out results, null);
+
+#pragma warning restore CS0618 // Obsolete warning for Parameter
     }
 }
